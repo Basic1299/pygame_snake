@@ -6,6 +6,7 @@ from SnakeTail import SnakeTail
 pygame.init()
 
 def spawn_tail(head, num, preview_parts):
+    """Returns new tail part"""
     for part in preview_parts:
         if num == 1:
             new_tail = SnakeTail(head, num, part)
@@ -53,31 +54,40 @@ while run:
             if event.key == pygame.K_LEFT and snake_head.dir != "RIGHT" and snake_head.dir != "LEFT":
                 if current_time - pressed_time > 100:
                     pressed_time = pygame.time.get_ticks()
+
                     snake_head.dir = "LEFT"
+                    
                     if snake_head.tail_length > 0:
-                        snake_head.coors_for_change_dir.append((snake_head.coors, snake_head.dir))
+                        snake_head.create_new_dir_spot()
+                        
 
             elif event.key == pygame.K_RIGHT and snake_head.dir != "LEFT" and snake_head.dir != "RIGHT":
                 if current_time - pressed_time > 100:
                     pressed_time = pygame.time.get_ticks()
-                    snake_head.dir = "RIGHT"
-                    if snake_head.tail_length > 0:
-                        snake_head.coors_for_change_dir.append((snake_head.coors, snake_head.dir))
 
+                    snake_head.dir = "RIGHT"
+
+                    if snake_head.tail_length > 0:
+                        snake_head.create_new_dir_spot()                    
+                    
             elif event.key == pygame.K_UP and snake_head.dir != "DOWN" and snake_head.dir != "UP":
                 if current_time - pressed_time > 100:
                     pressed_time = pygame.time.get_ticks()
-                    snake_head.dir = "UP"
-                    if snake_head.tail_length > 0:
-                        snake_head.coors_for_change_dir.append((snake_head.coors, snake_head.dir))
 
+                    snake_head.dir = "UP"
+
+                    if snake_head.tail_length > 0:
+                        snake_head.create_new_dir_spot()
+                        
             elif event.key == pygame.K_DOWN and snake_head.dir != "UP" and snake_head.dir != "DOWN":
                 if current_time - pressed_time > 100:
                     pressed_time = pygame.time.get_ticks()
-                    snake_head.dir = "DOWN"
-                    if snake_head.tail_length > 0:
-                        snake_head.coors_for_change_dir.append((snake_head.coors, snake_head.dir))
 
+                    snake_head.dir = "DOWN"
+
+                    if snake_head.tail_length > 0:
+                        snake_head.create_new_dir_spot()
+                        
             # Test
             if event.key == pygame.K_SPACE:
                 snake_tail_id += 1
@@ -91,8 +101,8 @@ while run:
                 
             # test
             if event.key == pygame.K_k:
-                print("checks: " + str(len(snake_head.coors_for_change_dir)))
-                print("times: " + str(len(snake_head.pressed_times)))
+                print(snake_head.coors_for_change_dir)
+               
                
     current_time = pygame.time.get_ticks()
                     

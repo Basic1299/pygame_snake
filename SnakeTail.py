@@ -71,7 +71,6 @@ class SnakeTail(pygame.sprite.Sprite):
         if self.id_number > 1:
             position = 15
 
-        
         if self.preview_part.dir == "RIGHT":
             return [self.preview_part.coors[0]-position, self.preview_part.coors[1]]
         elif self.preview_part.dir == "LEFT":

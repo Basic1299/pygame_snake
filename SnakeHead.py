@@ -35,6 +35,9 @@ class SnakeHead(pygame.sprite.Sprite):
     def position_update(self):
         self.coors = [self.rect.centerx, self.rect.centery]
 
+    def create_new_dir_spot(self):
+        self.coors_for_change_dir.append((self.coors, self.dir))
+
     def movement(self):
         if self.dir == "RIGHT":
             self.rect.move_ip(self.speed, 0)
