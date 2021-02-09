@@ -22,6 +22,7 @@ class SnakeTail(pygame.sprite.Sprite):
         self.position_update()
         self.dir_change()
         self.coors_for_dir_change_delete()
+        self.spawn_tail_part()
         self.movement()
 
     def set_init_dir(self):
@@ -58,6 +59,13 @@ class SnakeTail(pygame.sprite.Sprite):
         """Updates coordinates"""
         self.coors = [self.rect.centerx, self.rect.centery]
 
+    def spawn_tail_part(self):
+        if len(self.snake_head.eat_spots) > 0:
+            for coors in self.snake_head.eat_spots:
+                if self.coors == coors and self.id_number == self.snake_head.tail_length:
+                    self.snake_head.spawn_tail = True
+                    del self.snake_head.eat_spots[0]
+
     def movement(self):
         """Moves the part based on its direction variable"""
         if self.dir == "RIGHT":
@@ -73,7 +81,7 @@ class SnakeTail(pygame.sprite.Sprite):
         """Sets spawn position based on the movement direction and id number"""
         position = 20
         if self.id_number > 1:
-            position = 0
+            position = 18
 
         if self.preview_part.dir == "RIGHT":
             return [self.preview_part.coors[0]-position, self.preview_part.coors[1]]

@@ -11,11 +11,13 @@ class SnakeHead(pygame.sprite.Sprite):
         self.color = (0, 100, 0)
         self.coors = [pos_x, pos_y]
         self.coors_for_change_dir = []
+        self.eat_spots = []
+        self.spawn_tail = False
         self.tail_length = 0
 
         self.init_dir = ""
         self.dir = ""
-        self.speed = 20
+        self.speed = 2
         
         self.image = pygame.Surface(self.size)
         self.image.fill(self.color)
@@ -39,6 +41,9 @@ class SnakeHead(pygame.sprite.Sprite):
     def create_new_dir_spot(self):
         self.coors_for_change_dir.append((self.coors, self.dir))
 
+    def create_eat_spot(self):
+        self.eat_spots.append(self.coors)
+        
     def movement(self):
         if self.dir == "RIGHT":
             self.rect.move_ip(self.speed, 0)
