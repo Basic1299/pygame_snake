@@ -3,6 +3,9 @@ import pygame
 class SnakeHead(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__()
+        self.current_time = pygame.time.get_ticks()
+        self.pressed_times = []
+        
         self.id_number = 0
         self.size = (20, 20)
         self.color = (0, 100, 0)
@@ -19,12 +22,12 @@ class SnakeHead(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.coors)
 
     def update(self):
+        self.time_update()
         self.movement()
         self.position_update()
 
-    def delete_coors_for_dir(self):
-        pass
-                
+    def time_update(self):
+        self.current_time = pygame.time.get_ticks()
             
     def update_tail(self, tail_len):
         self.tail_length = tail_len

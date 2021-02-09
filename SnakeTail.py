@@ -52,7 +52,6 @@ class SnakeTail(pygame.sprite.Sprite):
                     del self.snake_head.coors_for_change_dir[0]
                     print(self.snake_head.coors_for_change_dir)
 
-
     def position_update(self):
         self.coors = [self.rect.centerx, self.rect.centery]
 
