@@ -15,7 +15,7 @@ class SnakeHead(pygame.sprite.Sprite):
 
         self.init_dir = ""
         self.dir = ""
-        self.speed = 5
+        self.speed = 20
         
         self.image = pygame.Surface(self.size)
         self.image.fill(self.color)
@@ -30,6 +30,7 @@ class SnakeHead(pygame.sprite.Sprite):
         self.current_time = pygame.time.get_ticks()
             
     def update_tail(self, tail_len):
+        """Calculates and sets the lengths of the tal"""
         self.tail_length = tail_len
 
     def position_update(self):

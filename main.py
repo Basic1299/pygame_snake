@@ -31,6 +31,7 @@ snake_head = SnakeHead(100, 100)
 snake_tail_id = 0
 current_time = 0
 pressed_time = 0
+game_speed = 250
 
 # Sprite Groups
 snake_head_group = pygame.sprite.Group()
@@ -42,6 +43,7 @@ snake_tail_group = pygame.sprite.Group()
 run = True
 while run:
     clock.tick(30)
+    pygame.time.delay(game_speed)
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -51,39 +53,32 @@ while run:
                 run = False
 
             # Movement Keys
-            if event.key == pygame.K_LEFT and snake_head.dir != "RIGHT" and snake_head.dir != "LEFT":
-                if current_time - pressed_time > 100:
-                    pressed_time = pygame.time.get_ticks()
-
+            if current_time - pressed_time >= 0:
+                if event.key == pygame.K_LEFT and snake_head.dir != "RIGHT" and snake_head.dir != "LEFT":
                     snake_head.dir = "LEFT"
-                    
+                    pressed_time = pygame.time.get_ticks()
+                        
                     if snake_head.tail_length > 0:
                         snake_head.create_new_dir_spot()
-                        
+                            
 
-            elif event.key == pygame.K_RIGHT and snake_head.dir != "LEFT" and snake_head.dir != "RIGHT":
-                if current_time - pressed_time > 100:
-                    pressed_time = pygame.time.get_ticks()
-
+                if event.key == pygame.K_RIGHT and snake_head.dir != "LEFT" and snake_head.dir != "RIGHT":
                     snake_head.dir = "RIGHT"
+                    pressed_time = pygame.time.get_ticks()
 
                     if snake_head.tail_length > 0:
                         snake_head.create_new_dir_spot()                    
-                    
-            elif event.key == pygame.K_UP and snake_head.dir != "DOWN" and snake_head.dir != "UP":
-                if current_time - pressed_time > 100:
-                    pressed_time = pygame.time.get_ticks()
-
+                        
+                if event.key == pygame.K_UP and snake_head.dir != "DOWN" and snake_head.dir != "UP":
                     snake_head.dir = "UP"
+                    pressed_time = pygame.time.get_ticks()
 
                     if snake_head.tail_length > 0:
                         snake_head.create_new_dir_spot()
-                        
-            elif event.key == pygame.K_DOWN and snake_head.dir != "UP" and snake_head.dir != "DOWN":
-                if current_time - pressed_time > 100:
-                    pressed_time = pygame.time.get_ticks()
-
+                            
+                if event.key == pygame.K_DOWN and snake_head.dir != "UP" and snake_head.dir != "DOWN":
                     snake_head.dir = "DOWN"
+                    pressed_time = pygame.time.get_ticks()
 
                     if snake_head.tail_length > 0:
                         snake_head.create_new_dir_spot()
@@ -101,13 +96,11 @@ while run:
                 
             # test
             if event.key == pygame.K_k:
-                print(snake_head.coors_for_change_dir)
+                pass
                
                
     current_time = pygame.time.get_ticks()
                     
-
-
     screen.fill((255, 255, 255))
 
 
