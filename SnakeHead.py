@@ -9,9 +9,6 @@ class SnakeHead(pygame.sprite.Sprite):
         self.coors = [pos_x, pos_y]
         self.coors_for_change_dir = []
         self.tail_length = 0
-        
-        self.pressed_times = []
-        self.current_time = 0
 
         self.init_dir = ""
         self.dir = ""
@@ -24,16 +21,9 @@ class SnakeHead(pygame.sprite.Sprite):
     def update(self):
         self.movement()
         self.position_update()
-##        self.delete_coors_for_dir()
-
-    def time_update(self, current):
-        self.current_time = current
 
     def delete_coors_for_dir(self):
-        if len(self.coors_for_change_dir) > 0:
-            for time in self.pressed_times:
-                if self.current_time - time > (self.tail_length // 5) * 1000:
-                    del self.coors_for_change_dir[0]
+        pass
                 
             
     def update_tail(self, tail_len):

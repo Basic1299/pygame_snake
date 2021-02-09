@@ -21,6 +21,7 @@ class SnakeTail(pygame.sprite.Sprite):
     def update(self):
         self.position_update()
         self.dir_change()
+        self.coors_for_dir_change_delete()
         self.movement()
 
     def set_init_dir(self):
@@ -43,6 +44,13 @@ class SnakeTail(pygame.sprite.Sprite):
                 self.dir = "UP"
             elif self.coors == coors and direction == "DOWN":
                 self.dir = "DOWN"
+
+    def coors_for_dir_change_delete(self):
+        if len(self.snake_head.coors_for_change_dir) > 0:
+            for coors, direction in self.snake_head.coors_for_change_dir:
+                if self.coors == coors and self.id_number == self.snake_head.tail_length:
+                    del self.snake_head.coors_for_change_dir[0]
+                    print(self.snake_head.coors_for_change_dir)
 
 
     def position_update(self):
