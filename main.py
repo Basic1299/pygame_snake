@@ -2,6 +2,7 @@ import pygame
 from SnakeHead import SnakeHead
 from SnakeTail import SnakeTail
 from Food import Food
+from Score import Score
 
 
 pygame.init()
@@ -46,7 +47,8 @@ current_time = 0
 pressed_time = 0
 game_speed = 250
 
-# Objects Inits
+# Objects Initials
+score = Score()
 snake_head = SnakeHead(100, 100)
 
 # Sprite Groups
@@ -145,10 +147,12 @@ while run:
         snake_tail_group.add(new_tail)
         snake_head.update_tail(len(snake_tail_group))
 
-    # Activate growing process after eating food
+    # Snake head and food collision
     if pygame.sprite.spritecollideany(snake_head, food_group):
         for food in food_group:
             food.kill()
+        score.add_score(1)
+        print(score.score)
         food_group.add(spawn_food())
         
         if snake_head.tail_length > 0:

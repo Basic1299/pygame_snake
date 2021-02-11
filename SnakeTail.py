@@ -1,5 +1,6 @@
 import pygame
 
+
 class SnakeTail(pygame.sprite.Sprite):
     def __init__(self, snake_head, id_number, preview_part):
         super().__init__()
@@ -8,7 +9,7 @@ class SnakeTail(pygame.sprite.Sprite):
         self.id_number = id_number
         self.size = (20, 20)
         self.coors = self.set_spawn_position()
-        self.color = (0, 255, 0)
+        self.color = self.set_color()
         
         self.init_dir = self.set_init_dir()
         self.dir = self.init_dir
@@ -18,12 +19,20 @@ class SnakeTail(pygame.sprite.Sprite):
         self.image.fill(self.color)
         self.rect = self.image.get_rect(center=self.coors)
 
+        self.current_time = pygame.time.get_ticks()
+        self.time_get = 0
+
     def update(self):
         self.position_update()
         self.dir_change()
         self.coors_for_dir_change_delete()
         self.spawn_tail_part()
         self.movement()
+        self.color_change()
+        self.time_update()
+
+    def time_update(self):
+        self.current_time = pygame.time.get_ticks()
 
     def set_init_dir(self):
         """Sets initial direction of a part based on the direction of a part in front of it"""
@@ -91,6 +100,24 @@ class SnakeTail(pygame.sprite.Sprite):
             return [self.preview_part.coors[0], self.preview_part.coors[1]+position]
         elif self.preview_part.dir == "DOWN":
             return [self.preview_part.coors[0], self.preview_part.coors[1]-position]
+
+    def color_change(self):
+        """Changes color based on eaten food"""
+        color = self.set_color()
+        for spot_coors in self.snake_head.eat_spots:
+            if self.coors == spot_coors:
+                self.time_get = pygame.time.get_ticks()
+
+        if self.current_time - self.time_get < 100:
+            color = (0, 100, 0)
+
+        self.image.fill(color)
+
+    def set_color(self):
+        if self.id_number % 2 == 0:
+            return 0, 200, 0
+        else:
+            return 0, 255, 0
 
 
 
