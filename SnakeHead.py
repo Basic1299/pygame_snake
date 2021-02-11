@@ -1,5 +1,6 @@
 import pygame
 
+
 class SnakeHead(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__()
@@ -21,12 +22,37 @@ class SnakeHead(pygame.sprite.Sprite):
         
         self.image = pygame.Surface(self.size)
         self.image.fill(self.color)
+        self.eye1 = pygame.draw.rect(self.image, (255, 0, 0), (2, 5, 4, 4), 0)
+        self.eye2 = pygame.draw.rect(self.image, (255, 0, 0), (14, 5, 4, 4), 0)
         self.rect = self.image.get_rect(center=self.coors)
 
     def update(self):
         self.time_update()
         self.movement()
         self.position_update()
+        self.eyes_update()
+
+    def eyes_update(self):
+        if self.dir == "LEFT":
+            self.image = pygame.Surface(self.size)
+            self.image.fill(self.color)
+            self.eye1 = pygame.draw.rect(self.image, (255, 0, 0), (10, 0, 4, 4), 0)
+            self.eye2 = pygame.draw.rect(self.image, (255, 0, 0), (10, 16, 4, 4), 0)
+        elif self.dir == "RIGHT":
+            self.image = pygame.Surface(self.size)
+            self.image.fill(self.color)
+            self.eye1 = pygame.draw.rect(self.image, (255, 0, 0), (6, 0, 4, 4), 0)
+            self.eye2 = pygame.draw.rect(self.image, (255, 0, 0), (6, 16, 4, 4), 0)
+        elif self.dir == "UP":
+            self.image = pygame.Surface(self.size)
+            self.image.fill(self.color)
+            self.eye1 = pygame.draw.rect(self.image, (255, 0, 0), (0, 10, 4, 4), 0)
+            self.eye2 = pygame.draw.rect(self.image, (255, 0, 0), (16, 10, 4, 4), 0)
+        elif self.dir == "DOWN":
+            self.image = pygame.Surface(self.size)
+            self.image.fill(self.color)
+            self.eye1 = pygame.draw.rect(self.image, (255, 0, 0), (0, 6, 4, 4), 0)
+            self.eye2 = pygame.draw.rect(self.image, (255, 0, 0), (16, 6, 4, 4), 0)
 
     def time_update(self):
         self.current_time = pygame.time.get_ticks()
