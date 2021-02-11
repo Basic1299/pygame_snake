@@ -6,6 +6,7 @@ from Food import Food
 
 pygame.init()
 
+
 def spawn_tail(head, num, preview_parts):
     """Returns new tail part"""
     for part in preview_parts:
@@ -17,10 +18,18 @@ def spawn_tail(head, num, preview_parts):
     
     return new_tail
 
+
 def spawn_food():
     new_food = Food()
     
     return new_food
+
+
+def respawn_food():
+    if pygame.sprite.groupcollide(food_group, snake_tail_group, False, False):
+        for food_ in food_group:
+            food_.kill()
+        food_group.add(spawn_food())
 
 
 SCREEN_WIDTH = 800
@@ -31,21 +40,23 @@ pygame.display.set_caption("Snake")
 
 clock = pygame.time.Clock()
 
-# Objects Inits
-food = Food()
-snake_head = SnakeHead(100, 100)
-
 # Game Variables
 snake_tail_id = 0
 current_time = 0
 pressed_time = 0
 game_speed = 250
 
+# Objects Inits
+snake_head = SnakeHead(100, 100)
+
 # Sprite Groups
 snake_head_group = pygame.sprite.Group()
 snake_head_group.add(snake_head)
 
+first_tail_group = pygame.sprite.Group()
 snake_tail_group = pygame.sprite.Group()
+
+food = Food()
 
 food_group = pygame.sprite.Group()
 food_group.add(food)
@@ -55,7 +66,6 @@ food_group.add(food)
 run = True
 while run:
     clock.tick(60)
-##    pygame.time.delay(game_speed)
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -72,7 +82,6 @@ while run:
                         
                     if snake_head.tail_length > 0:
                         snake_head.create_new_dir_spot()
-                            
 
                 elif event.key == pygame.K_RIGHT and snake_head.dir != "LEFT" and snake_head.dir != "RIGHT":
                     snake_head.dir = "RIGHT"
@@ -100,34 +109,43 @@ while run:
                 snake_tail_id += 1
                 if snake_tail_id == 1:
                     new_tail = spawn_tail(snake_head, snake_tail_id, snake_head_group)
+                    first_tail_group.add(new_tail)
                 else:
                     new_tail = spawn_tail(snake_head, snake_tail_id, snake_tail_group)
-                    
+
                 snake_tail_group.add(new_tail)
                 snake_head.update_tail(len(snake_tail_group))
                 
             # test
             if event.key == pygame.K_k:
                 pass
-               
-               
+
     current_time = pygame.time.get_ticks()
-                    
+
     screen.fill((255, 255, 255))
 
-    # Grow tail when eated spot reaches end of the snake
+    # Respawn food spot if it spawns on the tail
+    respawn_food()
+
+    # Collision between head and tail
+    if pygame.sprite.spritecollideany(snake_head, snake_tail_group):
+        if not pygame.sprite.spritecollideany(snake_head, first_tail_group):
+            print("collision")
+
+    # Grow tail when eat spot reaches end of the snake
     if snake_head.spawn_tail:
         snake_head.spawn_tail = False
         snake_tail_id += 1
         if snake_tail_id == 1:
             new_tail = spawn_tail(snake_head, snake_tail_id, snake_head_group)
+            first_tail_group.add(new_tail)
         else:
             new_tail = spawn_tail(snake_head, snake_tail_id, snake_tail_group)
-                    
+
         snake_tail_group.add(new_tail)
         snake_head.update_tail(len(snake_tail_group))
 
-    # Activate growing proccess after eating food
+    # Activate growing process after eating food
     if pygame.sprite.spritecollideany(snake_head, food_group):
         for food in food_group:
             food.kill()
