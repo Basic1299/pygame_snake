@@ -4,6 +4,7 @@ from SnakeHead import SnakeHead
 from SnakeTail import SnakeTail
 from Food import Food
 from Score import Score
+from Menu import Menu
 
 
 pygame.init()
@@ -73,11 +74,11 @@ def head_tail_collision():
     return False
 
 
-def is_game_over():
+def is_game_over(state):
     if out_of_screen() or head_tail_collision():
         return "over"
 
-    return "main"
+    return state
 
 
 SCREEN_WIDTH = 800
@@ -92,15 +93,20 @@ clock = pygame.time.Clock()
 snake_tail_id = 0
 current_time = 0
 pressed_time = 0
-game_state = "main"
+snake_speed = 2
+bg_color = (0, 0, 0)
+snake_color = "GREEN"
+game_state = "player1_menu"
 
 # Objects Initials
+menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
 score = Score()
-snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH-50), random.randint(30, SCREEN_HEIGHT-50))
+#snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH-50), random.randint(30, SCREEN_HEIGHT-50),
+                 #      snake_speed, snake_color)
 
 # Sprite Groups
 snake_head_group = pygame.sprite.Group()
-snake_head_group.add(snake_head)
+#snake_head_group.add(snake_head)
 
 first_tail_group = pygame.sprite.Group()
 snake_tail_group = pygame.sprite.Group()
@@ -110,13 +116,18 @@ food = Food()
 food_group = pygame.sprite.Group()
 food_group.add(food)
 
+# Fonts
+title_font = pygame.font.SysFont("Arial", 64)
+option_font = pygame.font.SysFont("Arial", 32)
+
+# GAME STATES [main_menu, player1_menu, player1_game, player2_menu, player2_game, over]
 
 # Game Loop
 run = True
 while run:
     clock.tick(60)
-
-    if game_state == "intro":
+    # MAIN MENU
+    if game_state == "main_menu":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -124,9 +135,166 @@ while run:
                 if event.key == pygame.K_ESCAPE:
                     run = False
 
-        name = input("Enter your name: ")
+                elif event.key == pygame.K_UP:
+                    if menu.option > 0:
+                        menu.option -= 1
 
-    elif game_state == "main":
+                elif event.key == pygame.K_DOWN:
+                    if menu.option < 2:
+                        menu.option += 1
+
+                if event.key == pygame.K_RETURN:
+                    if menu.option == 0:
+                        game_state = "player1_menu"
+                        menu.option = 0
+
+                    elif menu.option == 1:
+                        menu.option = 0
+                        pass
+
+                    elif menu.option == 2:
+                        pygame.quit()
+                        exit()
+
+        screen.fill(bg_color)
+
+        # Title
+        menu.draw_text(title_font, "S n a k e", (0, 255, 0), bg_color, (SCREEN_WIDTH//2, 80))
+
+        # Options
+        menu.draw_text(option_font, "One player", (0, 255, 0), bg_color, (SCREEN_WIDTH // 2, 250))
+        menu.draw_text(option_font, "Two players", (0, 255, 0), bg_color, (SCREEN_WIDTH // 2, 300))
+        menu.draw_text(option_font, "Exit", (0, 255, 0), bg_color, (SCREEN_WIDTH // 2, 350))
+
+        # Draw borders
+        if menu.option == 0:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 232, (0, 255, 0))
+        elif menu.option == 1:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 282, (0, 255, 0))
+        elif menu.option == 2:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 332, (0, 255, 0))
+
+        pygame.display.flip()
+
+    # PLAYER 1 MENU
+    elif game_state == "player1_menu":
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    run = False
+
+                elif event.key == pygame.K_UP:
+                    if menu.option > 0:
+                        menu.option -= 1
+
+                elif event.key == pygame.K_DOWN:
+                    if menu.option < 4:
+                        menu.option += 1
+
+                if event.key == pygame.K_RETURN:
+                    # Start
+                    if menu.option == 3:
+                        snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
+                                               random.randint(30, SCREEN_HEIGHT - 50),
+                                               snake_speed, snake_color)
+                        snake_head_group.add(snake_head)
+                        game_state = "player1_game"
+                    # Back
+                    elif menu.option == 4:
+                        game_state = "main_menu"
+                        menu.option = 0
+
+                # Side options colors
+                if menu.is_color_option:
+                    if event.key == pygame.K_LEFT:
+                        if menu.color_option > 0:
+                            menu.color_option -= 1
+                    elif event.key == pygame.K_RIGHT:
+                        if menu.color_option < 2:
+                            menu.color_option += 1
+
+                # Side options difficulty
+                if menu.is_difficulty_option:
+                    if event.key == pygame.K_LEFT:
+                        if menu.difficulty_option > 0:
+                            menu.difficulty_option -= 1
+                    elif event.key == pygame.K_RIGHT:
+                        if menu.difficulty_option < 2:
+                            menu.difficulty_option += 1
+
+        screen.fill(bg_color)
+
+        # Title
+        menu.draw_text(title_font, "P l a y e r 1", (0, 255, 0), bg_color, (SCREEN_WIDTH // 2, 80))
+
+        # Options
+        if menu.option != 0:
+            menu.draw_text(option_font, "Name", (0, 255, 0), bg_color, (SCREEN_WIDTH // 2, 250))
+
+        if menu.option != 1:
+            menu.draw_text(option_font, "Difficulty", (0, 255, 0), bg_color, (SCREEN_WIDTH // 2, 300))
+
+        if menu.option != 2:
+            menu.draw_text(option_font, "Skin color", (0, 255, 0), bg_color, (SCREEN_WIDTH // 2, 350))
+        else:
+            # LEFT GREEN
+            pygame.draw.rect(screen, (0, 255, 0), (SCREEN_WIDTH//2 - 55, 337, 30, 30), 0)
+            # MIDDLE RED
+            pygame.draw.rect(screen, (255, 0, 0), (SCREEN_WIDTH // 2 - 10, 337, 30, 30), 0)
+            # RIGHT BLUE
+            pygame.draw.rect(screen, (0, 0, 255), (SCREEN_WIDTH // 2 + 35, 337, 30, 30), 0)
+
+        menu.draw_text(option_font, "Start", (0, 255, 0), bg_color, (SCREEN_WIDTH // 2, 400))
+        menu.draw_text(option_font, "Back", (0, 255, 0), bg_color, (SCREEN_WIDTH // 2, 500))
+
+        # Draw borders
+        # Name
+        if menu.option == 0:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 232, (0, 255, 0))
+            menu.is_color_option = False
+            menu.is_difficulty_option = False
+        # Difficulty
+        elif menu.option == 1:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 282, (0, 255, 0))
+            menu.is_difficulty_option = True
+            menu.is_color_option = False
+        # Color
+        elif menu.option == 2:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 332, (0, 255, 0))
+            menu.is_color_option = True
+            menu.is_difficulty_option = False
+        # Start
+        elif menu.option == 3:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 382, (0, 255, 0))
+            menu.is_color_option = False
+            menu.is_difficulty_option = False
+        # Back
+        elif menu.option == 4:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 482, (0, 255, 0))
+            menu.is_color_option = False
+            menu.is_difficulty_option = False
+
+        # Draw side borders
+        if menu.is_color_option:
+            # GREEN
+            if menu.color_option == 0:
+                snake_color = "GREEN"
+                pygame.draw.rect(screen, (0, 100, 0), (SCREEN_WIDTH // 2 - 50, 342, 20, 20), 0)
+            # RED
+            elif menu.color_option == 1:
+                snake_color = "RED"
+                pygame.draw.rect(screen, (100, 0, 0), (SCREEN_WIDTH // 2 - 5, 342, 20, 20), 0)
+            # BLUE
+            elif menu.color_option == 2:
+                snake_color = "BLUE"
+                pygame.draw.rect(screen, (0, 0, 100), (SCREEN_WIDTH // 2 + 40, 342, 20, 20), 0)
+
+        pygame.display.flip()
+
+    # PLAYER 1 GAME
+    elif game_state == "player1_game":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -202,11 +370,11 @@ while run:
                 if event.key == pygame.K_k:
                     game_state = "over"
 
-        game_state = is_game_over()
+        game_state = is_game_over(game_state)
 
         current_time = pygame.time.get_ticks()
 
-        screen.fill((0, 0, 0))
+        screen.fill(bg_color)
 
         # Respawn food spot if it spawns on the tail
         respawn_food()
@@ -252,7 +420,7 @@ while run:
         option = input("play again? y/n: ")
 
         if option == "y":
-            game_state = "main"
+            game_state = "player1_game"
 
             # Reset Variables
             snake_tail_id = 0
@@ -260,7 +428,8 @@ while run:
             pressed_time = 0
 
             score = Score()
-            snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH-50), random.randint(30, SCREEN_HEIGHT-50))
+            snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH-50), random.randint(30, SCREEN_HEIGHT-50),
+                                   snake_speed, snake_color)
 
             snake_head_group = pygame.sprite.Group()
             snake_head_group.add(snake_head)

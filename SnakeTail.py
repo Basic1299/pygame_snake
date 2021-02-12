@@ -32,6 +32,7 @@ class SnakeTail(pygame.sprite.Sprite):
         self.time_update()
 
     def time_update(self):
+        """Gets time in m seconds"""
         self.current_time = pygame.time.get_ticks()
 
     def set_init_dir(self):
@@ -109,15 +110,35 @@ class SnakeTail(pygame.sprite.Sprite):
                 self.time_get = pygame.time.get_ticks()
 
         if self.current_time - self.time_get < 100:
-            color = (0, 100, 0)
+            color = self.snake_head.head_color
 
         self.image.fill(color)
 
     def set_color(self):
-        if self.id_number % 2 == 0:
-            return 0, 200, 0
-        else:
-            return 0, 255, 0
+        """Based on the head color sets colors of each tail part"""
+        if self.snake_head.snake_color == "GREEN":
+            if self.id_number % 2 == 0:
+                return 0, 200, 0
+            else:
+                return 0, 255, 0
+
+        elif self.snake_head.snake_color == "RED":
+            if self.id_number % 2 == 0:
+                return 200, 0, 0
+            else:
+                return 255, 0, 0
+
+        elif self.snake_head.snake_color == "BLUE":
+            if self.id_number % 2 == 0:
+                return 0, 0, 200
+            else:
+                return 0, 0, 255
+
+
+
+
+
+
 
 
 
