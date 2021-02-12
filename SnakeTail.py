@@ -8,12 +8,13 @@ class SnakeTail(pygame.sprite.Sprite):
         self.preview_part = preview_part
         self.id_number = id_number
         self.size = (20, 20)
+
+        self.speed = snake_head.speed
         self.coors = self.set_spawn_position()
         self.color = self.set_color()
         
         self.init_dir = self.set_init_dir()
         self.dir = self.init_dir
-        self.speed = snake_head.speed
 
         self.image = pygame.Surface(self.size)
         self.image.fill(self.color)
@@ -80,7 +81,7 @@ class SnakeTail(pygame.sprite.Sprite):
         """Moves the part based on its direction variable"""
         if self.dir == "RIGHT":
             self.rect.move_ip(self.speed, 0)
-        elif self.dir == "LEFT" :
+        elif self.dir == "LEFT":
             self.rect.move_ip(-self.speed, 0)
         elif self.dir == "UP":
             self.rect.move_ip(0, -self.speed)
@@ -88,10 +89,19 @@ class SnakeTail(pygame.sprite.Sprite):
             self.rect.move_ip(0, self.speed)
 
     def set_spawn_position(self):
-        """Sets spawn position based on the movement direction and id number"""
+        """Sets spawn position based on the movement direction, id number and speed"""
         position = 20
         if self.id_number > 1:
             position = 18
+
+        if self.speed == 3:
+            position = 21
+            if self.id_number > 1:
+                position = 18
+
+        elif self.speed == 4 or self.speed == 5:
+            if self.id_number > 1:
+                position = 20
 
         if self.preview_part.dir == "RIGHT":
             return [self.preview_part.coors[0]-position, self.preview_part.coors[1]]
