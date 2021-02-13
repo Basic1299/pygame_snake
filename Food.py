@@ -17,11 +17,13 @@ class Food(pygame.sprite.Sprite):
         pass
 
     def set_random_color(self):
-        R = random.randint(50, 200)
-        G = random.randint(50, 200)
-        B = random.randint(50, 200)
-
-        return R, G, B
+        chance = random.randint(0, 2)
+        if chance == 0:
+            return 255, 255, 255
+        elif chance == 1:
+            return 255, 255, 0
+        elif chance == 2:
+            return 0, 255, 0
 
     def set_init_coors(self):
         x = random.randint(1, 779)

@@ -15,8 +15,8 @@ class Menu:
         self.color_option = 0
         self.difficulty_option = 1
 
-    def draw_text(self, font, text, text_color, bg_color, center):
-        text_image = font.render(f'{text}', True, text_color, bg_color)
+    def draw_text(self, font, text, text_color, center):
+        text_image = font.render(f'{text}', True, text_color)
         text_rect = text_image.get_rect(center=center)
         self.screen.blit(text_image, text_rect)
 
