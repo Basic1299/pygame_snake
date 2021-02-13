@@ -93,7 +93,7 @@ clock = pygame.time.Clock()
 snake_tail_id = 0
 current_time = 0
 pressed_time = 0
-snake_speed = 5 # [2, 3, 4, 5]
+snake_speed = 2 # [1, 2, 3, 4, 5]
 bg_color = (0, 0, 0)
 snake_color = "GREEN"
 game_state = "player1_menu"
@@ -101,12 +101,9 @@ game_state = "player1_menu"
 # Objects Initials
 menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
 score = Score()
-#snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH-50), random.randint(30, SCREEN_HEIGHT-50),
-                 #      snake_speed, snake_color)
 
 # Sprite Groups
 snake_head_group = pygame.sprite.Group()
-#snake_head_group.add(snake_head)
 
 first_tail_group = pygame.sprite.Group()
 snake_tail_group = pygame.sprite.Group()
@@ -205,6 +202,8 @@ while run:
                     elif menu.option == 4:
                         game_state = "main_menu"
                         menu.option = 0
+                        menu.difficulty_option = 1
+                        menu.color_option = 0
 
                 # Side options colors
                 if menu.is_color_option:
@@ -220,9 +219,11 @@ while run:
                     if event.key == pygame.K_LEFT:
                         if menu.difficulty_option > 0:
                             menu.difficulty_option -= 1
+                            snake_speed = menu.difficulty_option + 1
                     elif event.key == pygame.K_RIGHT:
-                        if menu.difficulty_option < 2:
+                        if menu.difficulty_option < 4:
                             menu.difficulty_option += 1
+                            snake_speed = menu.difficulty_option + 1
 
         screen.fill(bg_color)
 
@@ -235,6 +236,29 @@ while run:
 
         if menu.option != 1:
             menu.draw_text(option_font, "Difficulty", (0, 255, 0), bg_color, (SCREEN_WIDTH // 2, 300))
+        else:
+            pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 76, 286, 157, 31), 2)
+
+            if menu.difficulty_option == 0:
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 287, 30, 30), 0)
+            elif menu.difficulty_option == 1:
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 287, 30, 30), 0)
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 45, 287, 30, 30), 0)
+            elif menu.difficulty_option == 2:
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 287, 30, 30), 0)
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 45, 287, 30, 30), 0)
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 15, 287, 30, 30), 0)
+            elif menu.difficulty_option == 3:
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 287, 30, 30), 0)
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 45, 287, 30, 30), 0)
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 15, 287, 30, 30), 0)
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 + 15, 287, 30, 30), 0)
+            elif menu.difficulty_option == 4:
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 287, 30, 30), 0)
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 45, 287, 30, 30), 0)
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 15, 287, 30, 30), 0)
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 + 15, 287, 30, 30), 0)
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 + 45, 287, 37, 30), 0)
 
         if menu.option != 2:
             menu.draw_text(option_font, "Skin color", (0, 255, 0), bg_color, (SCREEN_WIDTH // 2, 350))

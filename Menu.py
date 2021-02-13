@@ -13,7 +13,7 @@ class Menu:
         self.is_difficulty_option = False
 
         self.color_option = 0
-        self.difficulty_option = 0
+        self.difficulty_option = 1
 
     def draw_text(self, font, text, text_color, bg_color, center):
         text_image = font.render(f'{text}', True, text_color, bg_color)
