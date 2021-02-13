@@ -5,6 +5,7 @@ from SnakeTail import SnakeTail
 from Food import Food
 from Score import Score
 from Menu import Menu
+from Brick import Brick
 
 
 pygame.init()
@@ -30,7 +31,8 @@ def spawn_food():
 
 def respawn_food():
     for food_ in food_group:
-        if pygame.sprite.spritecollideany(food_, snake_tail_group):
+        if pygame.sprite.spritecollideany(food_, snake_tail_group) or \
+                pygame.sprite.spritecollideany(food_, brick_group):
             food_.kill()
             food_group.add(spawn_food())
 
@@ -81,6 +83,54 @@ def is_game_over(state):
     return state
 
 
+def create_walls(h_walls_num, h_walls_len, v_walls_num, v_walls_len, divide):
+    width = SCREEN_HEIGHT // divide
+
+    # horizontal walls number
+    hor_walls = random.randint(h_walls_num[0], h_walls_num[1])
+    for j in range(hor_walls):
+        pos_x = random.randint(0, width)
+        pos_y = random.randint(0, width)
+
+        # horizontal wall length
+        hor_length = random.randint(h_walls_len[0], h_walls_len[1])
+        for i in range(hor_length):
+            brick_group.add(Brick(pos_x + i * 30, pos_y))
+
+        width *= 2
+
+    width = SCREEN_HEIGHT // divide
+
+    # Vertical walls number
+    ver_walls = random.randint(v_walls_num[0], v_walls_num[1])
+    for j in range(ver_walls):
+        pos_x = random.randint(0, width)
+        pos_y = random.randint(0, width)
+
+        # Vertical wall length
+        ver_length = random.randint(v_walls_len[0], v_walls_len[1])
+        for i in range(ver_length):
+            brick_group.add(Brick(pos_x, pos_y + i * 30))
+
+        width *= 2
+
+
+def create_brick_group(intensity):
+    if intensity == 1:
+        create_walls((1, 2), (2, 6), (1, 2), (2, 6), 4)
+    elif intensity == 2:
+        create_walls((3, 4), (3, 6), (3, 4), (3, 6), 8)
+    elif intensity == 3:
+        create_walls((5, 6), (4, 8), (5, 6), (4, 8), 12)
+
+
+def snake_head_init_brick_collision():
+    if snake_head.dir == "":
+        if pygame.sprite.spritecollideany(snake_head, brick_group):
+            return True
+    return False
+
+
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
@@ -94,6 +144,7 @@ snake_tail_id = 0
 current_time = 0
 pressed_time = 0
 snake_speed = 2 # [1, 2, 3, 4, 5]
+brick_intensity = 3 # [0, 1, 2, 3]
 bg_color = (50, 50, 50)
 snake_color = "GREEN"
 game_state = "player1_menu"
@@ -112,6 +163,8 @@ food2 = Food()
 
 food_group = pygame.sprite.Group()
 food_group.add(food, food2)
+
+brick_group = pygame.sprite.Group()
 
 # Fonts
 title_font = pygame.font.SysFont("Arial", 64)
@@ -193,10 +246,13 @@ while run:
                 if event.key == pygame.K_RETURN:
                     # Start
                     if menu.option == 3:
+                        create_brick_group(brick_intensity)
+
                         snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
                                                random.randint(30, SCREEN_HEIGHT - 50),
                                                snake_speed, snake_color)
                         snake_head_group.add(snake_head)
+
                         score = Score(snake_head)
                         game_state = "player1_game"
                     # Back
@@ -395,13 +451,22 @@ while run:
                 if event.key == pygame.K_k:
                     game_state = "over"
 
+        # Respawn snake head if it collides bricks on the spawn
+        if snake_head_init_brick_collision():
+            snake_head.kill()
+            snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
+                                   random.randint(30, SCREEN_HEIGHT - 50),
+                                   snake_speed, snake_color)
+            snake_head_group.add(snake_head)
+            score = Score(snake_head)
+
         game_state = is_game_over(game_state)
 
         current_time = pygame.time.get_ticks()
 
         screen.fill(bg_color)
 
-        # Respawn food spot if it spawns on the tail
+        # Respawn food spot if it spawns on the tail or bricks
         respawn_food()
 
         # Grow tail when eat spot reaches end of the snake
@@ -431,6 +496,8 @@ while run:
 
         snake_head_group.update()
         snake_head_group.draw(screen)
+
+        brick_group.draw(screen)
 
         score.draw_score(screen, (15, 10))
 
