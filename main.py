@@ -25,11 +25,11 @@ def spawn_tail(head, num, preview_parts):
 
 def spawn_food():
     new_food = Food()
-    
     return new_food
 
 
 def respawn_food():
+    """Respawn food when it hits snakes tail or bricks during new init"""
     for food_ in food_group:
         if pygame.sprite.spritecollideany(food_, snake_tail_group) or \
                 pygame.sprite.spritecollideany(food_, brick_group):
@@ -52,6 +52,7 @@ def create_tail_part(snake_tail_id):
 
 
 def out_of_screen():
+    """Returns True when snake head is out of the screen"""
     if snake_head.dir == "RIGHT":
         if snake_head.rect.right > SCREEN_WIDTH:
             return True
@@ -69,6 +70,7 @@ def out_of_screen():
 
 
 def head_tail_collision():
+    """Return True if snake head hits its tail"""
     if pygame.sprite.spritecollideany(snake_head, snake_tail_group):
         if not pygame.sprite.spritecollideany(snake_head, first_tail_group):
             return True
@@ -77,57 +79,72 @@ def head_tail_collision():
 
 
 def is_game_over(state):
-    if out_of_screen() or head_tail_collision():
+    """Checks every state what causes game over"""
+    if out_of_screen() or head_tail_collision() or snake_head_bricks_collision():
         return "over"
 
     return state
 
 
-def create_walls(h_walls_num, h_walls_len, v_walls_num, v_walls_len, divide):
-    width = SCREEN_HEIGHT // divide
+def create_walls(h_walls_num, h_walls_len, v_walls_num, v_walls_len):
+    """Based on number of walls and length of walls fill brick groups with walls"""
+    start = 50
+    width = 200
 
     # horizontal walls number
     hor_walls = random.randint(h_walls_num[0], h_walls_num[1])
     for j in range(hor_walls):
-        pos_x = random.randint(0, width)
-        pos_y = random.randint(0, width)
+        pos_x = random.randint(start, width)
+        pos_y = random.randint(start, width)
 
         # horizontal wall length
         hor_length = random.randint(h_walls_len[0], h_walls_len[1])
         for i in range(hor_length):
             brick_group.add(Brick(pos_x + i * 30, pos_y))
 
-        width *= 2
+        start += 150
+        width += 200
 
-    width = SCREEN_HEIGHT // divide
+    start = 50
+    width = 200
 
     # Vertical walls number
     ver_walls = random.randint(v_walls_num[0], v_walls_num[1])
     for j in range(ver_walls):
-        pos_x = random.randint(0, width)
-        pos_y = random.randint(0, width)
+        pos_x = random.randint(start, width)
+        pos_y = random.randint(start, width)
 
         # Vertical wall length
         ver_length = random.randint(v_walls_len[0], v_walls_len[1])
         for i in range(ver_length):
             brick_group.add(Brick(pos_x, pos_y + i * 30))
 
-        width *= 2
+        start += 150
+        width += 200
 
 
 def create_brick_group(intensity):
+    """Based on intensity creates brick group"""
     if intensity == 1:
-        create_walls((1, 2), (2, 6), (1, 2), (2, 6), 4)
+        create_walls((1, 2), (2, 6), (1, 2), (2, 6))
     elif intensity == 2:
-        create_walls((3, 4), (3, 6), (3, 4), (3, 6), 8)
+        create_walls((2, 3), (3, 6), (2, 3), (3, 6))
     elif intensity == 3:
-        create_walls((5, 6), (4, 8), (5, 6), (4, 8), 12)
+        create_walls((3, 4), (4, 6), (3, 4), (4, 6))
 
 
 def snake_head_init_brick_collision():
+    """Returns True if snake head hits any brick during init"""
     if snake_head.dir == "":
         if pygame.sprite.spritecollideany(snake_head, brick_group):
             return True
+    return False
+
+
+def snake_head_bricks_collision():
+    """Returns True if snake head hits any brick"""
+    if pygame.sprite.spritecollideany(snake_head, brick_group):
+        return True
     return False
 
 
@@ -144,7 +161,7 @@ snake_tail_id = 0
 current_time = 0
 pressed_time = 0
 snake_speed = 2 # [1, 2, 3, 4, 5]
-brick_intensity = 3 # [0, 1, 2, 3]
+brick_intensity = 0 # [0, 1, 2, 3]
 bg_color = (50, 50, 50)
 snake_color = "GREEN"
 game_state = "player1_menu"
@@ -240,12 +257,12 @@ while run:
                         menu.option -= 1
 
                 elif event.key == pygame.K_DOWN:
-                    if menu.option < 4:
+                    if menu.option < 5:
                         menu.option += 1
 
                 if event.key == pygame.K_RETURN:
                     # Start
-                    if menu.option == 3:
+                    if menu.option == 4:
                         create_brick_group(brick_intensity)
 
                         snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
@@ -256,7 +273,7 @@ while run:
                         score = Score(snake_head)
                         game_state = "player1_game"
                     # Back
-                    elif menu.option == 4:
+                    elif menu.option == 5:
                         game_state = "main_menu"
                         menu.option = 0
                         menu.difficulty_option = 1
@@ -282,6 +299,16 @@ while run:
                             menu.difficulty_option += 1
                             snake_speed = menu.difficulty_option + 1
 
+                # Side options wall intensity
+                if menu.is_wall_option:
+                    if event.key == pygame.K_LEFT:
+                        if menu.wall_option > 0:
+                            menu.wall_option -= 1
+                    elif event.key == pygame.K_RIGHT:
+                        if menu.wall_option < 3:
+                            menu.wall_option += 1
+                    brick_intensity = menu.wall_option
+
         screen.fill(bg_color)
 
         # Title
@@ -292,7 +319,7 @@ while run:
             menu.draw_text(option_font, "Name", (0, 255, 0), (SCREEN_WIDTH // 2, 250))
 
         if menu.option != 1:
-            menu.draw_text(option_font, "Difficulty", (0, 255, 0), (SCREEN_WIDTH // 2, 300))
+            menu.draw_text(option_font, "Speed", (0, 255, 0), (SCREEN_WIDTH // 2, 300))
         else:
             pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 76, 286, 157, 31), 2)
 
@@ -327,7 +354,22 @@ while run:
             # RIGHT BLUE
             pygame.draw.rect(screen, (0, 0, 255), (SCREEN_WIDTH // 2 + 35, 337, 30, 30), 0)
 
-        menu.draw_text(option_font, "Start", (0, 255, 0), (SCREEN_WIDTH // 2, 400))
+        if menu.option != 3:
+            menu.draw_text(option_font, "Wall intensity", (0, 255, 0), (SCREEN_WIDTH // 2, 400))
+        else:
+            pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 76, 386, 157, 31), 2)
+
+            if menu.wall_option == 1:
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 387, 50, 30), 0)
+            elif menu.wall_option == 2:
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 387, 50, 30), 0)
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 25, 387, 50, 30), 0)
+            elif menu.wall_option == 3:
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 387, 50, 30), 0)
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 25, 387, 50, 30), 0)
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 + 25, 387, 55, 30), 0)
+
+        menu.draw_text(option_font, "Start", (0, 255, 0), (SCREEN_WIDTH // 2, 450))
         menu.draw_text(option_font, "Back", (0, 255, 0), (SCREEN_WIDTH // 2, 500))
 
         # Draw borders
@@ -336,26 +378,39 @@ while run:
             menu.draw_border(SCREEN_WIDTH // 2 - 92, 232, (0, 255, 0))
             menu.is_color_option = False
             menu.is_difficulty_option = False
+            menu.is_wall_option = False
         # Difficulty
         elif menu.option == 1:
             menu.draw_border(SCREEN_WIDTH // 2 - 92, 282, (0, 255, 0))
             menu.is_difficulty_option = True
             menu.is_color_option = False
+            menu.is_wall_option = False
         # Color
         elif menu.option == 2:
             menu.draw_border(SCREEN_WIDTH // 2 - 92, 332, (0, 255, 0))
             menu.is_color_option = True
             menu.is_difficulty_option = False
-        # Start
+            menu.is_wall_option = False
+
+        # Walls intensity
         elif menu.option == 3:
             menu.draw_border(SCREEN_WIDTH // 2 - 92, 382, (0, 255, 0))
+            menu.is_wall_option = True
             menu.is_color_option = False
             menu.is_difficulty_option = False
-        # Back
+
+        # Start
         elif menu.option == 4:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 432, (0, 255, 0))
+            menu.is_color_option = False
+            menu.is_difficulty_option = False
+            menu.is_wall_option = False
+        # Back
+        elif menu.option == 5:
             menu.draw_border(SCREEN_WIDTH // 2 - 92, 482, (0, 255, 0))
             menu.is_color_option = False
             menu.is_difficulty_option = False
+            menu.is_wall_option = False
 
         # Draw side borders
         if menu.is_color_option:
@@ -381,7 +436,8 @@ while run:
                 run = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    run = False
+                    menu.option = 0
+                    game_state = "main_menu"
 
                 # Create two tails parts when movement keys pressed
                 if snake_head.dir == "":
@@ -452,7 +508,7 @@ while run:
                     game_state = "over"
 
         # Respawn snake head if it collides bricks on the spawn
-        if snake_head_init_brick_collision():
+        while snake_head_init_brick_collision():
             snake_head.kill()
             snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
                                    random.randint(30, SCREEN_HEIGHT - 50),

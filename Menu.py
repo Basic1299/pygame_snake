@@ -11,9 +11,11 @@ class Menu:
 
         self.is_color_option = False
         self.is_difficulty_option = False
+        self.is_wall_option = False
 
         self.color_option = 0
         self.difficulty_option = 1
+        self.wall_option = 0
 
     def draw_text(self, font, text, text_color, center):
         text_image = font.render(f'{text}', True, text_color)
