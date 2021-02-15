@@ -2,9 +2,9 @@ import pygame
 
 
 class SnakeHead(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y, speed, snake_color):
+    def __init__(self, pos_x, pos_y, speed, snake_color, name):
         super().__init__()
-        self.name = ""
+        self.name = name
 
         self.current_time = pygame.time.get_ticks()
         self.pressed_times = []

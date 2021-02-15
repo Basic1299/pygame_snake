@@ -176,10 +176,9 @@ first_tail_group = pygame.sprite.Group()
 snake_tail_group = pygame.sprite.Group()
 
 food = Food()
-food2 = Food()
 
 food_group = pygame.sprite.Group()
-food_group.add(food, food2)
+food_group.add(food)
 
 brick_group = pygame.sprite.Group()
 
@@ -255,23 +254,28 @@ while run:
                 elif event.key == pygame.K_UP:
                     if menu.option > 0:
                         menu.option -= 1
+                        menu.invalid_name = False
 
                 elif event.key == pygame.K_DOWN:
                     if menu.option < 5:
                         menu.option += 1
+                        menu.invalid_name = False
 
                 if event.key == pygame.K_RETURN:
                     # Start
                     if menu.option == 4:
-                        create_brick_group(brick_intensity)
+                        if menu.name != "":
+                            create_brick_group(brick_intensity)
 
-                        snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
-                                               random.randint(30, SCREEN_HEIGHT - 50),
-                                               snake_speed, snake_color)
-                        snake_head_group.add(snake_head)
+                            snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
+                                                   random.randint(30, SCREEN_HEIGHT - 50),
+                                                   snake_speed, snake_color, menu.name)
+                            snake_head_group.add(snake_head)
 
-                        score = Score(snake_head)
-                        game_state = "player1_game"
+                            score = Score(snake_head)
+                            game_state = "player1_game"
+                        else:
+                            menu.invalid_name = True
                     # Back
                     elif menu.option == 5:
                         game_state = "main_menu"
@@ -309,41 +313,78 @@ while run:
                             menu.wall_option += 1
                     brick_intensity = menu.wall_option
 
+                # Name input
+                if menu.is_name:
+                    if event.key == pygame.K_BACKSPACE:
+                        menu.name = menu.name[:-1]
+                    else:
+                        if menu.name.count("w") >= 3:
+                            if len(menu.name) <= 7:
+                                menu.name += event.unicode
+                        else:
+                            if len(menu.name) <= 9:
+                                menu.name += event.unicode
+
         screen.fill(bg_color)
 
         # Title
         menu.draw_text(title_font, "O n e  P l a y e r", (0, 255, 0), (SCREEN_WIDTH // 2, 80))
 
         # Options
+        # Name
         if menu.option != 0:
-            menu.draw_text(option_font, "Name", (0, 255, 0), (SCREEN_WIDTH // 2, 250))
+            if not menu.invalid_name:
+                menu.draw_text(option_font, "Name", (0, 255, 0), (SCREEN_WIDTH // 2, 250))
+            else:
+                menu.draw_text(option_font, "Name", (255, 0, 0), (SCREEN_WIDTH // 2, 250))
+            menu.is_name = False
+        else:
+            menu.is_name = True
+            name_surf = option_font.render(menu.name, True, (255, 255, 255))
+            screen.blit(name_surf, name_surf.get_rect(center=(SCREEN_WIDTH // 2, 250)))
 
+        # Speed
         if menu.option != 1:
             menu.draw_text(option_font, "Speed", (0, 255, 0), (SCREEN_WIDTH // 2, 300))
         else:
             pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 76, 286, 157, 31), 2)
 
-            if menu.difficulty_option == 0:
+            if (
+                menu.difficulty_option == 0
+                or menu.difficulty_option == 1
+                or menu.difficulty_option == 2
+                or menu.difficulty_option == 3
+                or menu.difficulty_option == 4
+            ):
                 pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 287, 30, 30), 0)
-            elif menu.difficulty_option == 1:
-                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 287, 30, 30), 0)
+
+            if (
+                menu.difficulty_option == 1
+                or menu.difficulty_option == 2
+                or menu.difficulty_option == 3
+                or menu.difficulty_option == 4
+            ):
                 pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 45, 287, 30, 30), 0)
-            elif menu.difficulty_option == 2:
-                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 287, 30, 30), 0)
-                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 45, 287, 30, 30), 0)
+
+            if (
+                menu.difficulty_option == 2
+                or menu.difficulty_option == 3
+                or menu.difficulty_option == 4
+            ):
                 pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 15, 287, 30, 30), 0)
-            elif menu.difficulty_option == 3:
-                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 287, 30, 30), 0)
-                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 45, 287, 30, 30), 0)
-                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 15, 287, 30, 30), 0)
+
+            if (
+                menu.difficulty_option == 3
+                or menu.difficulty_option == 4
+            ):
                 pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 + 15, 287, 30, 30), 0)
-            elif menu.difficulty_option == 4:
-                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 287, 30, 30), 0)
-                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 45, 287, 30, 30), 0)
-                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 15, 287, 30, 30), 0)
-                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 + 15, 287, 30, 30), 0)
+
+            if menu.difficulty_option == 4:
                 pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 + 45, 287, 37, 30), 0)
 
+
+
+        # Color
         if menu.option != 2:
             menu.draw_text(option_font, "Skin color", (0, 255, 0), (SCREEN_WIDTH // 2, 350))
         else:
@@ -354,21 +395,20 @@ while run:
             # RIGHT BLUE
             pygame.draw.rect(screen, (0, 0, 255), (SCREEN_WIDTH // 2 + 35, 337, 30, 30), 0)
 
+        # Wall intensity
         if menu.option != 3:
             menu.draw_text(option_font, "Wall intensity", (0, 255, 0), (SCREEN_WIDTH // 2, 400))
         else:
             pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 76, 386, 157, 31), 2)
 
-            if menu.wall_option == 1:
+            if menu.wall_option == 1 or menu.wall_option == 2 or menu.wall_option == 3:
                 pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 387, 50, 30), 0)
-            elif menu.wall_option == 2:
-                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 387, 50, 30), 0)
+            if menu.wall_option == 2 or menu.wall_option == 3:
                 pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 25, 387, 50, 30), 0)
-            elif menu.wall_option == 3:
-                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 387, 50, 30), 0)
-                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 25, 387, 50, 30), 0)
+            if menu.wall_option == 3:
                 pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 + 25, 387, 55, 30), 0)
 
+        # Start, Back
         menu.draw_text(option_font, "Start", (0, 255, 0), (SCREEN_WIDTH // 2, 450))
         menu.draw_text(option_font, "Back", (0, 255, 0), (SCREEN_WIDTH // 2, 500))
 
@@ -567,7 +607,7 @@ while run:
                 if event.key == pygame.K_ESCAPE:
                     run = False
 
-        option = input("play again? y/n: ")
+        option = input(f"{menu.name}. Wanna play again? y/n: ")
 
         if option == "y":
             game_state = "player1_game"
@@ -578,7 +618,7 @@ while run:
             pressed_time = 0
 
             snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH-50), random.randint(30, SCREEN_HEIGHT-50),
-                                   snake_speed, snake_color)
+                                   snake_speed, snake_color, menu.name)
 
             snake_head_group = pygame.sprite.Group()
             snake_head_group.add(snake_head)
