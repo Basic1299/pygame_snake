@@ -6,6 +6,7 @@ from Food import Food
 from Score import Score
 from Menu import Menu
 from Brick import Brick
+from HighScoresDatabase import HighScoresDB
 
 
 pygame.init()
@@ -164,10 +165,12 @@ snake_speed = 2 # [1, 2, 3, 4, 5]
 brick_intensity = 0 # [0, 1, 2, 3]
 bg_color = (50, 50, 50)
 snake_color = "GREEN"
-game_state = "player1_menu"
+game_state = "over"
+add_score = True
 
 # Objects Initials
 menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
+high_score_db = HighScoresDB("high_score.db")
 
 # Sprite Groups
 snake_head_group = pygame.sprite.Group()
@@ -382,8 +385,6 @@ while run:
             if menu.difficulty_option == 4:
                 pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 + 45, 287, 37, 30), 0)
 
-
-
         # Color
         if menu.option != 2:
             menu.draw_text(option_font, "Skin color", (0, 255, 0), (SCREEN_WIDTH // 2, 350))
@@ -595,11 +596,11 @@ while run:
 
         brick_group.draw(screen)
 
-        score.draw_score(screen, (15, 10))
+        score.draw_score(screen, (15, 15))
 
         pygame.display.flip()
 
-    elif game_state == "over":
+    elif game_state == "over_old":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -634,6 +635,31 @@ while run:
 
         else:
             run = False
+
+    elif game_state == "over":
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    run = False
+
+                # test
+                if event.key == pygame.K_k:
+                    print(high_score_db.all_records())
+
+        # Add score to the database
+        #if add_score:
+            #add_score = False
+            #high_score_db.add_record(snake_head.name, score.score)
+
+        screen.fill(bg_color)
+
+        menu.draw_text(title_font, "H i g h  S c o r e", (0, 255, 0), (SCREEN_WIDTH // 2, 80))
+
+
+
+        pygame.display.flip()
 
 pygame.quit()
 
