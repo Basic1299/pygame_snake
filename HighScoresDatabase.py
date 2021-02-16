@@ -16,9 +16,13 @@ class HighScoresDB:
         self.conn.commit()
         self.conn.close()
 
-    def all_records(self):
-        """Returns list of all records from the database"""
-        self.c.execute("SELECT ROWID, name, score FROM players")
+    def all_records(self, asc_order):
+        """Returns list of all records from the database, order by score asc or desc"""
+        if asc_order:
+            self.c.execute("SELECT ROWID, name, score FROM players ORDER BY score ASC")
+        else:
+            self.c.execute("SELECT ROWID, name, score FROM players ORDER BY score DESC")
+
         records = self.c.fetchall()
         self.conn.commit()
 
@@ -38,14 +42,15 @@ class HighScoresDB:
 
     def add_record(self, name, score):
         """Adds record to the database (Keeps only 5 records there)"""
-        if len(self.all_records()) < 5:
-            self.c.execute(f"INSERT INTO players VALUES (:name, :score)",
-                      {
-                        "name": name,
-                        "score": score,
-                      }
-                           )
-            self.conn.commit()
+        if len(self.all_records(False)) < 5:
+            if self.all_records(False)[4] < score:
+                self.c.execute(f"INSERT INTO players VALUES (:name, :score)",
+                          {
+                            "name": name,
+                            "score": score,
+                          }
+                               )
+                self.conn.commit()
         else:
             min_score_record = self.find_min_score()
             self.delete_score(min_score_record)

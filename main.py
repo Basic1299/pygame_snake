@@ -165,8 +165,8 @@ snake_speed = 2 # [1, 2, 3, 4, 5]
 brick_intensity = 0 # [0, 1, 2, 3]
 bg_color = (50, 50, 50)
 snake_color = "GREEN"
-game_state = "over"
-add_score = True
+game_state = "main_menu"
+game_over_init = True
 
 # Objects Initials
 menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -268,6 +268,7 @@ while run:
                     # Start
                     if menu.option == 4:
                         if menu.name != "":
+                            menu.option = 0
                             create_brick_group(brick_intensity)
 
                             snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
@@ -644,20 +645,92 @@ while run:
                 if event.key == pygame.K_ESCAPE:
                     run = False
 
+                if event.key == pygame.K_RETURN:
+                    # Play again
+                    if menu.option == 0:
+                        game_state = "player1_game"
+
+                        # Reset Variables
+                        snake_tail_id = 0
+                        current_time = 0
+                        pressed_time = 0
+
+                        snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
+                                               random.randint(30, SCREEN_HEIGHT - 50),
+                                               snake_speed, snake_color, menu.name)
+
+                        snake_head_group = pygame.sprite.Group()
+                        snake_head_group.add(snake_head)
+
+                        first_tail_group = pygame.sprite.Group()
+                        snake_tail_group = pygame.sprite.Group()
+
+                        food = Food()
+                        score = Score(snake_head)
+
+                        food_group = pygame.sprite.Group()
+                        food_group.add(food)
+                    # Back to menu
+                    else:
+                        game_state = "main_menu"
+                        snake_speed = 2
+                        brick_intensity = 0
+                        snake_color = "GREEN"
+                        game_over_init = True
+
+                        first_tail_group = pygame.sprite.Group()
+                        snake_tail_group = pygame.sprite.Group()
+
+                        menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
+                        score = Score(snake_head)
+                        food = Food()
+
+                        food_group = pygame.sprite.Group()
+                        food_group.add(food)
+
+                # Move between buttons
+                elif event.key == pygame.K_UP:
+                    if menu.option > 0:
+                        menu.option -= 1
+                        print(menu.option)
+
+                elif event.key == pygame.K_DOWN:
+                    if menu.option < 1:
+                        menu.option += 1
+                        print(menu.option)
+
                 # test
                 if event.key == pygame.K_k:
-                    print(high_score_db.all_records())
+                    high_score_db.add_record("Aloha", 10)
+                    print(high_score_db.all_records(False))
 
         # Add score to the database
-        #if add_score:
-            #add_score = False
-            #high_score_db.add_record(snake_head.name, score.score)
+        if game_over_init:
+            game_over_init = False
+            high_score_db.add_record(snake_head.name, score.score)
 
         screen.fill(bg_color)
 
+        # title
         menu.draw_text(title_font, "H i g h  S c o r e", (0, 255, 0), (SCREEN_WIDTH // 2, 80))
 
+        # Score Table
+        space = 0
+        for record_id, name, score in high_score_db.all_records(False):
+            menu.draw_text(option_font, f"{name}        {score}", (0, 255, 0), (SCREEN_WIDTH // 2, 200 + space))
+            space += 50
 
+        # Draw Buttons
+
+        menu.draw_text(option_font, "Play again", (0, 255, 0), (SCREEN_WIDTH // 2, 500))
+        menu.draw_text(option_font, "Menu", (0, 255, 0), (SCREEN_WIDTH // 2, 550))
+
+        # Draw borders
+
+        if menu.option == 0:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 482, (0, 255, 0))
+        elif menu.option == 1:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 532, (0, 255, 0))
 
         pygame.display.flip()
 
