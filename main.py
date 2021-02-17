@@ -29,59 +29,80 @@ def spawn_food():
     return new_food
 
 
-def respawn_food():
+def respawn_food(tail_group):
     """Respawn food when it hits snakes tail or bricks during new init"""
     for food_ in food_group:
-        if pygame.sprite.spritecollideany(food_, snake_tail_group) or \
+        if pygame.sprite.spritecollideany(food_, tail_group) or \
                 pygame.sprite.spritecollideany(food_, brick_group):
             food_.kill()
             food_group.add(spawn_food())
 
 
-def create_tail_part(tail_id):
+def create_tail_part(tail_id, head, head_group, tail_group, first_tail_grp):
     tail_id += 1
     if tail_id == 1:
-        new_tail = spawn_tail(snake_head, tail_id, snake_head_group)
-        first_tail_group.add(new_tail)
+        new_tail = spawn_tail(head, tail_id, head_group)
+        first_tail_grp.add(new_tail)
     else:
-        new_tail = spawn_tail(snake_head, tail_id, snake_tail_group)
+        new_tail = spawn_tail(head, tail_id, tail_group)
 
-    snake_tail_group.add(new_tail)
-    snake_head.update_tail(len(snake_tail_group))
+    tail_group.add(new_tail)
+    head.update_tail(len(tail_group))
 
     return tail_id
 
 
-def out_of_screen():
+def out_of_screen(head):
     """Returns True when snake head is out of the screen"""
-    if snake_head.dir == "RIGHT":
-        if snake_head.rect.right > SCREEN_WIDTH:
+    if head.dir == "RIGHT":
+        if head.rect.right > SCREEN_WIDTH:
             return True
-    elif snake_head.dir == "LEFT":
-        if snake_head.rect.left < 0:
+    elif head.dir == "LEFT":
+        if head.rect.left < 0:
             return True
-    elif snake_head.dir == "UP":
-        if snake_head.rect.top < 0:
+    elif head.dir == "UP":
+        if head.rect.top < 0:
             return True
-    elif snake_head.dir == "DOWN":
-        if snake_head.rect.bottom > SCREEN_HEIGHT:
+    elif head.dir == "DOWN":
+        if head.rect.bottom > SCREEN_HEIGHT:
             return True
 
     return False
 
 
-def head_tail_collision():
+def head_tail_collision(head, tail_group, p_first_tail_group):
     """Return True if snake head hits its tail"""
-    if pygame.sprite.spritecollideany(snake_head, snake_tail_group):
-        if not pygame.sprite.spritecollideany(snake_head, first_tail_group):
+    if pygame.sprite.spritecollideany(head, tail_group):
+        if not pygame.sprite.spritecollideany(head, p_first_tail_group):
             return True
 
     return False
 
 
-def is_game_over(state):
+def p2_is_game_over(state, p1_head, p1_tail_group, p1_first_tail_group,
+                 p2_head, p2_tail_group, p2_first_tail_group_):
     """Checks every state what causes game over"""
-    if out_of_screen() or head_tail_collision() or snake_head_bricks_collision():
+    # Player 1
+    if (out_of_screen(p1_head)
+            or head_tail_collision(p1_head, p1_tail_group, p1_first_tail_group)
+            or snake_head_bricks_collision(p1_head)):
+        return "over"
+
+    # Player 2
+    if (out_of_screen(p2_head)
+            or head_tail_collision(p2_head, p2_tail_group, p2_first_tail_group_)
+            or snake_head_bricks_collision(p2_head)):
+        return "over"
+
+    return state
+
+
+def is_game_over(state, head, tail_group, first_tail_group_):
+    """Checks every state what causes game over"""
+    # Player 1
+    if (out_of_screen(head)
+            or head_tail_collision(head, tail_group, first_tail_group_)
+            or snake_head_bricks_collision(head)):
         return "over"
 
     return state
@@ -134,17 +155,17 @@ def create_brick_group(intensity):
         create_walls((3, 4), (4, 6), (3, 4), (4, 6))
 
 
-def snake_head_init_brick_collision():
+def snake_head_init_brick_collision(head):
     """Returns True if snake head hits any brick during init"""
-    if snake_head.dir == "":
-        if pygame.sprite.spritecollideany(snake_head, brick_group):
+    if head.dir == "":
+        if pygame.sprite.spritecollideany(head, brick_group):
             return True
     return False
 
 
-def snake_head_bricks_collision():
+def snake_head_bricks_collision(head):
     """Returns True if snake head hits any brick"""
-    if pygame.sprite.spritecollideany(snake_head, brick_group):
+    if pygame.sprite.spritecollideany(head, brick_group):
         return True
     return False
 
@@ -157,37 +178,63 @@ pygame.display.set_caption("Snake")
 
 clock = pygame.time.Clock()
 
-# Game Variables
-snake_tail_id = 0
-current_time = 0
-pressed_time = 0
-snake_speed = 2
-brick_intensity = 0
-bg_color = (50, 50, 50)
-snake_color = "GREEN"
-game_state = "main_menu"
-game_over_init = True
-
-# Objects Initials
-menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
-high_score_db = HighScoresDB("high_score.db")
-
-# Sprite Groups
-snake_head_group = pygame.sprite.Group()
-
-first_tail_group = pygame.sprite.Group()
-snake_tail_group = pygame.sprite.Group()
-
-food = Food()
-
-food_group = pygame.sprite.Group()
-food_group.add(food)
-
-brick_group = pygame.sprite.Group()
-
 # Fonts
 title_font = pygame.font.SysFont("Arial", 64)
 option_font = pygame.font.SysFont("Arial", 32)
+
+# Game Variables
+current_time = 0
+pressed_time = 0
+brick_intensity = 0
+bg_color = (50, 50, 50)
+game_state = "player2_game"
+game_over_init = True
+
+# Player 1
+snake_tail_id = 0
+snake_speed = 2
+snake_color = "GREEN"
+menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
+
+# Player 2
+p2_snake_tail_id = 0
+p2_snake_speed = 2
+p2_snake_color = "RED"
+p2_menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
+
+# Objects Initials
+high_score_db = HighScoresDB("high_score.db")
+
+# Sprite Groups
+# Player 1
+snake_head_group = pygame.sprite.Group()
+first_tail_group = pygame.sprite.Group()
+snake_tail_group = pygame.sprite.Group()
+
+# Player 2
+p2_snake_head_group = pygame.sprite.Group()
+p2_first_tail_group = pygame.sprite.Group()
+p2_snake_tail_group = pygame.sprite.Group()
+
+food_group = pygame.sprite.Group()
+
+brick_group = pygame.sprite.Group()
+
+# 2 players initials (DELETE AFTER CREATING MENU FEATURE!)
+# Player 2
+p2_snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
+                          random.randint(30, SCREEN_HEIGHT - 50),
+                          p2_snake_speed, p2_snake_color, p2_menu.name)
+p2_snake_head_group.add(p2_snake_head)
+p2_score = Score()
+
+# Player 1
+snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
+                       random.randint(30, SCREEN_HEIGHT - 50),
+                       snake_speed, snake_color, menu.name)
+snake_head_group.add(snake_head)
+food_group.add(spawn_food())
+score = Score()
 
 # GAME STATES [main_menu, player1_menu, player1_game, player2_menu, player2_game, over]
 
@@ -275,6 +322,8 @@ while run:
                                                    random.randint(30, SCREEN_HEIGHT - 50),
                                                    snake_speed, snake_color, menu.name)
                             snake_head_group.add(snake_head)
+
+                            food_group.add(spawn_food())
 
                             score = Score()
                             game_state = "player1_game"
@@ -478,29 +527,32 @@ while run:
                 run = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    menu.option = 0
-                    game_state = "main_menu"
+                    run = False
 
                 # Create two tails parts when movement keys pressed
                 if snake_head.dir == "":
                     if event.key == pygame.K_RIGHT:
                         snake_head.dir = "RIGHT"
-                        snake_tail_id = create_tail_part(snake_tail_id)
+                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                         snake_tail_group, first_tail_group)
                         snake_head.create_eat_spot()
 
                     elif event.key == pygame.K_LEFT:
                         snake_head.dir = "LEFT"
-                        snake_tail_id = create_tail_part(snake_tail_id)
+                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                         snake_tail_group, first_tail_group)
                         snake_head.create_eat_spot()
 
                     elif event.key == pygame.K_UP:
                         snake_head.dir = "UP"
-                        snake_tail_id = create_tail_part(snake_tail_id)
+                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                         snake_tail_group, first_tail_group)
                         snake_head.create_eat_spot()
 
                     elif event.key == pygame.K_DOWN:
                         snake_head.dir = "DOWN"
-                        snake_tail_id = create_tail_part(snake_tail_id)
+                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                         snake_tail_group, first_tail_group)
                         snake_head.create_eat_spot()
 
                 # Movement Keys
@@ -548,23 +600,25 @@ while run:
                     snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
 
         # Respawn snake head if it collides bricks on the spawn
-        while snake_head_init_brick_collision():
+        while snake_head_init_brick_collision(snake_head):
             snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
             snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
 
-        game_state = is_game_over(game_state)
+        game_state = is_game_over(game_state, snake_head, snake_tail_group, first_tail_group)
 
         current_time = pygame.time.get_ticks()
 
         screen.fill(bg_color)
 
         # Respawn food spot if it spawns on the tail or bricks
-        respawn_food()
+        respawn_food(snake_tail_group)
 
         # Grow tail when eat spot reaches end of the snake
         if snake_head.spawn_tail:
             snake_head.spawn_tail = False
-            snake_tail_id = create_tail_part(snake_tail_id)
+            snake_tail_id = create_tail_part(snake_tail_id, snake_head,
+                                             snake_head_group, snake_tail_group,
+                                             first_tail_group)
 
         # Snake head and food collision
         for food in food_group:
@@ -591,7 +645,236 @@ while run:
 
         brick_group.draw(screen)
 
-        score.draw_score(screen, (15, 15), (0, 255, 0))
+        score.draw_score(screen, (15, 15), snake_head.snake_color)
+
+        pygame.display.flip()
+
+    # 2 PLAYERS GAME
+    elif game_state == "player2_game":
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    run = False
+
+                # Create two tails parts when movement keys pressed
+                # Player 1
+                if snake_head.dir == "":
+                    if event.key == pygame.K_RIGHT:
+                        snake_head.dir = "RIGHT"
+                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                         snake_tail_group, first_tail_group)
+                        snake_head.create_eat_spot()
+
+                    elif event.key == pygame.K_LEFT:
+                        snake_head.dir = "LEFT"
+                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                         snake_tail_group, first_tail_group)
+                        snake_head.create_eat_spot()
+
+                    elif event.key == pygame.K_UP:
+                        snake_head.dir = "UP"
+                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                         snake_tail_group, first_tail_group)
+                        snake_head.create_eat_spot()
+
+                    elif event.key == pygame.K_DOWN:
+                        snake_head.dir = "DOWN"
+                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                         snake_tail_group, first_tail_group)
+                        snake_head.create_eat_spot()
+
+                # Create two tails parts when movement keys pressed
+                # Player 2
+                if p2_snake_head.dir == "":
+                    if event.key == pygame.K_d:
+                        p2_snake_head.dir = "RIGHT"
+                        p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head, p2_snake_head_group,
+                                                            p2_snake_tail_group, p2_first_tail_group)
+                        p2_snake_head.create_eat_spot()
+
+                    elif event.key == pygame.K_a:
+                        p2_snake_head.dir = "LEFT"
+                        p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head, p2_snake_head_group,
+                                                            p2_snake_tail_group, p2_first_tail_group)
+                        p2_snake_head.create_eat_spot()
+
+                    elif event.key == pygame.K_w:
+                        p2_snake_head.dir = "UP"
+                        p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head, p2_snake_head_group,
+                                                            p2_snake_tail_group, p2_first_tail_group)
+                        p2_snake_head.create_eat_spot()
+
+                    elif event.key == pygame.K_s:
+                        p2_snake_head.dir = "DOWN"
+                        p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head, p2_snake_head_group,
+                                                            p2_snake_tail_group, p2_first_tail_group)
+                        p2_snake_head.create_eat_spot()
+
+                # Movement Keys
+                # Player 1
+                if snake_head.distance_between == 0:
+                    if event.key == pygame.K_LEFT and snake_head.dir != "RIGHT" and snake_head.dir != "LEFT":
+                        snake_head.dir = "LEFT"
+
+                        if snake_head.tail_length > 0:
+                            snake_head.create_new_dir_spot()
+
+                    elif event.key == pygame.K_RIGHT and snake_head.dir != "LEFT" and snake_head.dir != "RIGHT":
+                        snake_head.dir = "RIGHT"
+
+                        if snake_head.tail_length > 0:
+                            snake_head.create_new_dir_spot()
+
+                    elif event.key == pygame.K_UP and snake_head.dir != "DOWN" and snake_head.dir != "UP":
+                        snake_head.dir = "UP"
+
+                        if snake_head.tail_length > 0:
+                            snake_head.create_new_dir_spot()
+
+                    elif event.key == pygame.K_DOWN and snake_head.dir != "UP" and snake_head.dir != "DOWN":
+                        snake_head.dir = "DOWN"
+
+                        if snake_head.tail_length > 0:
+                            snake_head.create_new_dir_spot()
+
+                # Test
+                if event.key == pygame.K_SPACE:
+                    score.add_score(1)
+
+                # test
+                if event.key == pygame.K_k:
+                    snake_head.dir = ""
+                    snake_tail_id = 0
+                    snake_head.eat_spots = []
+                    snake_head.spawn_tail = False
+                    snake_head.tail_length = 0
+                    snake_tail_group.empty()
+                    first_tail_group.empty()
+                    score.score = 0
+
+                    snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
+                    snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
+
+                # Movement Keys
+                # Player 2
+                if p2_snake_head.distance_between == 0:
+                    if event.key == pygame.K_a and p2_snake_head.dir != "RIGHT" and p2_snake_head.dir != "LEFT":
+                        p2_snake_head.dir = "LEFT"
+
+                        if p2_snake_head.tail_length > 0:
+                            p2_snake_head.create_new_dir_spot()
+
+                    elif event.key == pygame.K_d and p2_snake_head.dir != "LEFT" and p2_snake_head.dir != "RIGHT":
+                        p2_snake_head.dir = "RIGHT"
+
+                        if p2_snake_head.tail_length > 0:
+                            p2_snake_head.create_new_dir_spot()
+
+                    elif event.key == pygame.K_w and p2_snake_head.dir != "DOWN" and p2_snake_head.dir != "UP":
+                        p2_snake_head.dir = "UP"
+
+                        if p2_snake_head.tail_length > 0:
+                            p2_snake_head.create_new_dir_spot()
+
+                    elif event.key == pygame.K_s and p2_snake_head.dir != "UP" and p2_snake_head.dir != "DOWN":
+                        p2_snake_head.dir = "DOWN"
+
+                        if p2_snake_head.tail_length > 0:
+                            p2_snake_head.create_new_dir_spot()
+
+        # Respawn snake head if it collides bricks on the spawn
+        # Player 1
+        while snake_head_init_brick_collision(snake_head):
+            snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
+            snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
+
+        # Respawn snake head if it collides bricks on the spawn
+        # Player 2
+        while snake_head_init_brick_collision(p2_snake_head):
+            p2_snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
+            p2_snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
+
+        game_state = p2_is_game_over(game_state, snake_head, snake_tail_group, first_tail_group,
+                                     p2_snake_head, p2_snake_tail_group, p2_first_tail_group)
+
+        current_time = pygame.time.get_ticks()
+
+        screen.fill(bg_color)
+
+        # Respawn food spot if it spawns on the tail or bricks
+        # Player 1
+        respawn_food(snake_tail_group)
+        # Player 2
+        respawn_food(p2_snake_tail_group)
+
+        # Grow tail when eat spot reaches end of the snake
+        # Player 1
+        if snake_head.spawn_tail:
+            snake_head.spawn_tail = False
+            snake_tail_id = create_tail_part(snake_tail_id, snake_head,
+                                             snake_head_group, snake_tail_group,
+                                             first_tail_group)
+
+        # Player 2
+        if p2_snake_head.spawn_tail:
+            p2_snake_head.spawn_tail = False
+            p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head,
+                                                p2_snake_head_group, p2_snake_tail_group,
+                                                p2_first_tail_group)
+
+        # Snake head and food collision
+        # Player 1
+        for food in food_group:
+            if pygame.sprite.collide_rect(snake_head, food):
+                food.kill()
+                score.add_score(1)
+                food = spawn_food()
+                food_group.add(food)
+
+                if snake_head.tail_length > 0:
+                    snake_head.create_eat_spot()
+                else:
+                    snake_head.spawn_tail = True
+
+        # Snake head and food collision
+        # Player 1
+        for food in food_group:
+            if pygame.sprite.collide_rect(p2_snake_head, food):
+                food.kill()
+                p2_score.add_score(1)
+                food = spawn_food()
+                food_group.add(food)
+
+                if p2_snake_head.tail_length > 0:
+                    p2_snake_head.create_eat_spot()
+                else:
+                    p2_snake_head.spawn_tail = True
+
+        # Drawing
+        food_group.update()
+        food_group.draw(screen)
+
+        # Player 1
+        snake_tail_group.update()
+        snake_tail_group.draw(screen)
+
+        snake_head_group.update()
+        snake_head_group.draw(screen)
+
+        score.draw_score(screen, (15, 15), snake_head.snake_color)
+
+        # Player 2
+        p2_snake_tail_group.update()
+        p2_snake_tail_group.draw(screen)
+
+        p2_snake_head_group.update()
+        p2_snake_head_group.draw(screen)
+
+        brick_group.draw(screen)
+
+        p2_score.draw_score(screen, (770, 15), p2_snake_head.snake_color)
 
         pygame.display.flip()
 
@@ -667,16 +950,11 @@ while run:
                         menu.option += 1
                         print(menu.option)
 
-                # test
-                if event.key == pygame.K_k:
-                    print(high_score_db.all_records(False))
-
         if game_state == "over":
             # Add score to the database
             if game_over_init:
                 game_over_init = False
                 high_score_db.add_record(snake_head.name, score.score)
-                print("tst")
 
             screen.fill(bg_color)
 

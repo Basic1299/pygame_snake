@@ -7,7 +7,7 @@ class SnakeTail(pygame.sprite.Sprite):
         self.snake_head = snake_head
         self.preview_part = preview_part
         self.id_number = id_number
-        self.size = (20, 20)
+        self.size = [20, 20]
 
         self.speed = snake_head.speed
         self.coors = self.set_spawn_position()
@@ -95,13 +95,17 @@ class SnakeTail(pygame.sprite.Sprite):
             position = 18
 
         if self.speed == 3:
-            position = 21
+            position = 18
             if self.id_number > 1:
                 position = 18
 
-        elif self.speed == 4 or self.speed == 5:
+        elif self.speed == 4:
             if self.id_number > 1:
-                position = 20
+                position = 16
+
+        elif self.speed == 5:
+            if self.id_number > 1:
+                position = 15
 
         if self.preview_part.dir == "RIGHT":
             return [self.preview_part.coors[0]-position, self.preview_part.coors[1]]

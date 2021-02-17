@@ -14,7 +14,6 @@ class HighScoresDB:
         """)
 
         self.conn.commit()
-        self.conn.close()
 
     def all_records(self, asc_order):
         """Returns list of all records from the database, order by score asc or desc"""
@@ -40,29 +39,43 @@ class HighScoresDB:
 
         return record[0]
 
+    def table_exists(self, name):
+        """Returns true or false if the given table name exists"""
+        self.c.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{name}'")
+        records = self.c.fetchall()
+        self.conn.commit()
+
+        if len(records) != 0:
+            return True
+        return False
+
     def add_record(self, name, score):
-        """Adds record to the database (Keeps only 5 records there)"""
-        if len(self.all_records(False)) < 5:
-            self.c.execute(f"INSERT INTO players VALUES (:name, :score)",
-                        {
-                        "name": name,
-                        "score": score,
-                        }
-                            )
-            self.conn.commit()
-        else:
-            min_score_record = self.find_min_score()
-
-            if min_score_record[1] < score:
-                self.delete_score(min_score_record)
-
+        """Adds record to the table (Keeps only 5 records there) if the table exists, else create it."""
+        if self.table_exists("players"):
+            if len(self.all_records(False)) < 5:
                 self.c.execute(f"INSERT INTO players VALUES (:name, :score)",
-                               {
-                                   "name": name,
-                                   "score": score,
-                               }
-                            )
+                            {
+                            "name": name,
+                            "score": score,
+                            }
+                                )
                 self.conn.commit()
+            else:
+                min_score_record = self.find_min_score()
+
+                if min_score_record[1] < score:
+                    self.delete_score(min_score_record)
+
+                    self.c.execute(f"INSERT INTO players VALUES (:name, :score)",
+                                   {
+                                       "name": name,
+                                       "score": score,
+                                   }
+                                )
+                    self.conn.commit()
+        else:
+            self.create_table()
+            self.add_record(name, score)
 
     def draw_table(self, font, screen):
         row_space = 0
