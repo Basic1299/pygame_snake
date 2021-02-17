@@ -199,7 +199,7 @@ current_time = 0
 pressed_time = 0
 brick_intensity = 0
 bg_color = (50, 50, 50)
-game_state = "player2_game"
+game_state = "player2_menu"
 game_over_init = True
 
 # Player 1
@@ -272,14 +272,17 @@ while run:
                         menu.option += 1
 
                 if event.key == pygame.K_RETURN:
+                    # Player 1
                     if menu.option == 0:
                         game_state = "player1_menu"
                         menu.option = 0
 
+                    # 2 players
                     elif menu.option == 1:
+                        game_state = "player2_menu"
                         menu.option = 0
-                        pass
 
+                    # Exit
                     elif menu.option == 2:
                         pygame.quit()
                         exit()
@@ -529,6 +532,119 @@ while run:
             elif menu.color_option == 2:
                 snake_color = "BLUE"
                 pygame.draw.rect(screen, (0, 0, 100), (SCREEN_WIDTH // 2 + 40, 342, 20, 20), 0)
+
+        pygame.display.flip()
+
+    # PLAYER 2 MENU
+    elif game_state == "player2_menu":
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    run = False
+
+                if event.key == pygame.K_UP:
+                    if menu.option > 0:
+                        menu.option -= 1
+
+                elif event.key == pygame.K_DOWN:
+                    if menu.option < 7:
+                        menu.option += 1
+
+                if event.key == pygame.K_RETURN:
+                    # Back
+                    if menu.option == 7:
+                        menu.option = 0
+                        game_state = "main_menu"
+
+        screen.fill(bg_color)
+
+        # Title
+        menu.draw_text(title_font, "T w o  P l a y e r s", (0, 255, 0), (SCREEN_WIDTH // 2, 80))
+
+        # OPTIONS
+        # player 1
+        # Name
+        if menu.option != 0:
+            if not menu.invalid_name:
+                menu.draw_text(option_font, "Player 1", (0, 255, 0), (250, 200))
+            else:
+                menu.draw_text(option_font, "Player 1", (255, 0, 0), (250, 200))
+        else:
+            pass
+
+        # Color
+        if menu.option != 1:
+            menu.draw_text(option_font, "Skin color", (0, 255, 0), (250, 250))
+        else:
+            pass
+
+        # Player 2
+        if menu.option != 2:
+            if not p2_menu.invalid_name:
+                p2_menu.draw_text(option_font, "Player 2", (0, 255, 0), (550, 200))
+            else:
+                p2_menu.draw_text(option_font, "Player 2", (255, 0, 0), (550, 200))
+        else:
+            pass
+
+        # Color
+        if menu.option != 3:
+            p2_menu.draw_text(option_font, "Skin color", (0, 255, 0), (550, 250))
+        else:
+            pass
+
+        # Common
+        # Speed
+        if menu.option != 4:
+            menu.draw_text(option_font, "Speed", (0, 255, 0), (SCREEN_WIDTH // 2, 350))
+        else:
+            pass
+
+        # Wall Intensity
+        if menu.option != 5:
+            menu.draw_text(option_font, "Wall intensity", (0, 255, 0), (SCREEN_WIDTH // 2, 400))
+        else:
+            pass
+
+        # Start, Back
+        menu.draw_text(option_font, "Start", (0, 255, 0), (SCREEN_WIDTH // 2, 500))
+        menu.draw_text(option_font, "Back", (0, 255, 0), (SCREEN_WIDTH // 2, 550))
+
+
+        # DRAW BORDERS
+        # player 1
+        # Name
+        if menu.option == 0:
+            menu.draw_border(152, 180, (0, 255, 0))
+        # Color
+        elif menu.option == 1:
+            menu.draw_border(152, 230, (0, 255, 0))
+
+        # player 2
+        # Name
+        elif menu.option == 2:
+            menu.draw_border(452, 180, (0, 255, 0))
+        # Color
+        elif menu.option == 3:
+            menu.draw_border(452, 230, (0, 255, 0))
+
+        # Common
+        # Speed
+        elif menu.option == 4:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 330, (0, 255, 0))
+        # Wall intensity
+        elif menu.option == 5:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 380, (0, 255, 0))
+
+        # Start
+        elif menu.option == 6:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 480, (0, 255, 0))
+        # Back
+        elif menu.option == 7:
+            menu.draw_border(SCREEN_WIDTH // 2 - 92, 530, (0, 255, 0))
+
 
         pygame.display.flip()
 
