@@ -80,18 +80,21 @@ def head_tail_collision(head, tail_group, p_first_tail_group):
 
 
 def p2_is_game_over(state, p1_head, p1_tail_group, p1_first_tail_group,
-                 p2_head, p2_tail_group, p2_first_tail_group_):
+                    p2_head, p2_tail_group, p2_first_tail_group_,
+                    p1_head_group, p2_head_group):
     """Checks every state what causes game over"""
     # Player 1
     if (out_of_screen(p1_head)
             or head_tail_collision(p1_head, p1_tail_group, p1_first_tail_group)
-            or snake_head_bricks_collision(p1_head)):
+            or snake_head_bricks_collision(p1_head)
+            or snake_snake_collision(p1_head, p2_head_group, p2_tail_group)):
         return "over"
 
     # Player 2
     if (out_of_screen(p2_head)
             or head_tail_collision(p2_head, p2_tail_group, p2_first_tail_group_)
-            or snake_head_bricks_collision(p2_head)):
+            or snake_head_bricks_collision(p2_head)
+            or snake_snake_collision(p2_head, p1_head_group, p1_tail_group)):
         return "over"
 
     return state
@@ -170,6 +173,15 @@ def snake_head_bricks_collision(head):
     return False
 
 
+def snake_snake_collision(head, opposite_head_group, opposite_tail_group):
+    """Returns True if snake head hits another player"""
+    if (pygame.sprite.spritecollideany(head, opposite_head_group)
+        or pygame.sprite.spritecollideany(head, opposite_tail_group)
+        ):
+        return True
+    return False
+
+
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
@@ -224,16 +236,16 @@ brick_group = pygame.sprite.Group()
 # Player 2
 p2_snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
                           random.randint(30, SCREEN_HEIGHT - 50),
-                          p2_snake_speed, p2_snake_color, p2_menu.name)
+                          p2_snake_speed, p2_snake_color, "Tester2")
 p2_snake_head_group.add(p2_snake_head)
 p2_score = Score()
 
 # Player 1
 snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
                        random.randint(30, SCREEN_HEIGHT - 50),
-                       snake_speed, snake_color, menu.name)
+                       snake_speed, snake_color, "Tester1")
 snake_head_group.add(snake_head)
-food_group.add(spawn_food())
+food_group.add(spawn_food(), spawn_food())
 score = Score()
 
 # GAME STATES [main_menu, player1_menu, player1_game, player2_menu, player2_game, over]
@@ -796,8 +808,20 @@ while run:
             p2_snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
             p2_snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
 
+        # Respawn players if they collide on the on the beginning with each other
+        # Both Players
+        while (snake_snake_collision(snake_head, p2_snake_head_group, p2_snake_tail_group)
+                and snake_head.dir == ""
+                and p2_snake_head.dir == ""):
+            snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
+            snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
+
+            p2_snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
+            p2_snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
+
         game_state = p2_is_game_over(game_state, snake_head, snake_tail_group, first_tail_group,
-                                     p2_snake_head, p2_snake_tail_group, p2_first_tail_group)
+                                     p2_snake_head, p2_snake_tail_group, p2_first_tail_group,
+                                     snake_head_group, p2_snake_head_group)
 
         current_time = pygame.time.get_ticks()
 
@@ -889,9 +913,27 @@ while run:
                 if event.key == pygame.K_RETURN:
                     # Play again
                     if menu.option == 0:
-                        game_state = "player1_game"
+                        if len(p2_snake_head_group) > 0:
+                            game_state = "player2_game"
+                            p2_snake_tail_id = 0
+                            p2_snake_head.dir = ""
+                            p2_snake_head.tail_length = 0
+
+                            p2_snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
+                            p2_snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
+
+                            p2_snake_head.coors_for_change_dir.clear()
+                            p2_snake_head.eat_spots.clear()
+                            p2_snake_head.spawn_tail = False
+                            p2_snake_head.tail_length = 0
+                            p2_snake_tail_group.empty()
+                            p2_first_tail_group.empty()
+                            p2_score.score = 0
+                        else:
+                            game_state = "player1_game"
 
                         # Reset Variables
+                        # Player 1
                         snake_tail_id = 0
                         current_time = 0
                         pressed_time = 0
@@ -909,20 +951,29 @@ while run:
                         snake_tail_group.empty()
                         first_tail_group.empty()
                         score.score = 0
+
                         game_over_init = True
 
                     # Back to menu
                     else:
                         game_state = "main_menu"
-                        snake_speed = 2
+
+                        # Reset Variables
                         brick_intensity = 0
-                        snake_tail_id = 0
                         current_time = 0
                         pressed_time = 0
-                        snake_color = "GREEN"
-
                         game_over_init = True
 
+                        # Player 1
+                        snake_speed = 2
+                        snake_tail_id = 0
+                        snake_color = "GREEN"
+
+                        # Objects and sprite groups deletes, empties
+                        food_group.empty()
+                        food_group.add(spawn_food())
+
+                        # Player 1
                         del snake_head
                         snake_head_group.empty()
 
@@ -932,12 +983,26 @@ while run:
 
                         del menu
                         menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
-                        high_score_db.menu = menu
 
                         del score
 
-                        food_group.empty()
-                        food_group.add(spawn_food())
+                        # Player 2
+                        if len(p2_snake_head_group) > 0:
+                            p2_snake_speed = 2
+                            p2_snake_tail_id = 0
+                            p2_snake_color = "GREEN"
+
+                            # Objects and sprite groups deletes, empties
+                            del p2_snake_head
+                            p2_snake_head_group.empty()
+
+                            p2_first_tail_group.empty()
+                            p2_snake_tail_group.empty()
+
+                            del p2_menu
+                            p2_menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
+
+                            del p2_score
 
                 # Move between buttons
                 elif event.key == pygame.K_UP:
@@ -954,7 +1019,12 @@ while run:
             # Add score to the database
             if game_over_init:
                 game_over_init = False
+                # Player 1
                 high_score_db.add_record(snake_head.name, score.score)
+
+                # Player 2
+                if len(p2_snake_head_group) > 0:
+                    high_score_db.add_record(p2_snake_head.name, p2_score.score)
 
             screen.fill(bg_color)
 

@@ -26,7 +26,7 @@ class Food(pygame.sprite.Sprite):
             return 0, 255, 0
 
     def set_init_coors(self):
-        x = random.randint(5, 779)
-        y = random.randint(5, 579)
+        x = random.randint(10, 770)
+        y = random.randint(10, 570)
 
         return x, y
