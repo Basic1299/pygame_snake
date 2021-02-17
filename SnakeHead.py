@@ -27,6 +27,7 @@ class SnakeHead(pygame.sprite.Sprite):
         self.init_dir = ""
         self.dir = ""
         self.speed = speed
+        self.distance_between = 0
 
         # Initial visual head state
         self.image = pygame.Surface(self.size)
@@ -38,6 +39,7 @@ class SnakeHead(pygame.sprite.Sprite):
 
     def update(self):
         self.time_update()
+        self.calculate_distance_between()
         self.movement()
         self.position_update()
         self.visual_head_update()
@@ -47,7 +49,13 @@ class SnakeHead(pygame.sprite.Sprite):
 
     def visual_head_update(self):
         """Changes head state based on moving direction"""
-        if self.dir == "LEFT":
+        # No movements visual
+        if self.dir == "":
+            self.image = pygame.Surface(self.size)
+            self.image.fill(self.head_color)
+            pygame.draw.rect(self.image, self.eyes_color, (2, 5, 4, 4), 0)
+            pygame.draw.rect(self.image, self.eyes_color, (14, 5, 4, 4), 0)
+        elif self.dir == "LEFT":
             self.image = pygame.Surface(self.size)
             self.image.fill(self.head_color)
             # Eyes
@@ -85,6 +93,16 @@ class SnakeHead(pygame.sprite.Sprite):
 
     def create_new_dir_spot(self):
         self.coors_for_change_dir.append((self.coors, self.dir))
+
+    def calculate_distance_between(self):
+        if len(self.coors_for_change_dir) > 0:
+            if self.dir == "RIGHT" or self.dir == "LEFT":
+                self.distance_between = abs(self.rect.centerx - self.coors_for_change_dir[-1][0][0])
+            elif self.dir == "UP" or self.dir == "DOWN":
+                self.distance_between = abs(self.rect.centery - self.coors_for_change_dir[-1][0][1])
+
+        if self.distance_between >= 18:
+            self.distance_between = 0
 
     def create_eat_spot(self):
         self.eat_spots.append(self.coors)
