@@ -52,20 +52,34 @@ def create_tail_part(tail_id, head, head_group, tail_group, first_tail_grp):
     return tail_id
 
 
-def out_of_screen(head):
-    """Returns True when snake head is out of the screen"""
-    if head.dir == "RIGHT":
-        if head.rect.right > SCREEN_WIDTH:
-            return True
-    elif head.dir == "LEFT":
-        if head.rect.left < 0:
-            return True
-    elif head.dir == "UP":
-        if head.rect.top < 0:
-            return True
-    elif head.dir == "DOWN":
-        if head.rect.bottom > SCREEN_HEIGHT:
-            return True
+def out_of_screen(head, transparency):
+    """Based on transparency returns True when snake head is out of the screen or changes the head coors"""
+    if not transparency:
+        if head.dir == "RIGHT":
+            if head.rect.right > SCREEN_WIDTH:
+                return True
+        elif head.dir == "LEFT":
+            if head.rect.left < 0:
+                return True
+        elif head.dir == "UP":
+            if head.rect.top < 0:
+                return True
+        elif head.dir == "DOWN":
+            if head.rect.bottom > SCREEN_HEIGHT:
+                return True
+    else:
+        if head.dir == "RIGHT":
+            if head.rect.left > SCREEN_WIDTH:
+                head.rect.centerx = 0
+        elif head.dir == "LEFT":
+            if head.rect.right < 0:
+                head.rect.centerx = SCREEN_WIDTH
+        elif head.dir == "UP":
+            if head.rect.bottom < 0:
+                head.rect.centery = SCREEN_HEIGHT
+        elif head.dir == "DOWN":
+            if head.rect.top > SCREEN_HEIGHT:
+                head.rect.centery = 0
 
     return False
 
@@ -81,10 +95,10 @@ def head_tail_collision(head, tail_group, p_first_tail_group):
 
 def p2_is_game_over(state, p1_head, p1_tail_group, p1_first_tail_group,
                     p2_head, p2_tail_group, p2_first_tail_group_,
-                    p1_head_group, p2_head_group):
+                    p1_head_group, p2_head_group, transparency):
     """Checks every state what causes game over"""
     # Player 1
-    if (out_of_screen(p1_head)
+    if (out_of_screen(p1_head, transparency)
             or head_tail_collision(p1_head, p1_tail_group, p1_first_tail_group)
             or snake_head_bricks_collision(p1_head)
             or snake_snake_collision(p1_head, p2_head_group, p2_tail_group)):
@@ -93,7 +107,7 @@ def p2_is_game_over(state, p1_head, p1_tail_group, p1_first_tail_group,
         return "over"
 
     # Player 2
-    if (out_of_screen(p2_head)
+    if (out_of_screen(p2_head, transparency)
             or head_tail_collision(p2_head, p2_tail_group, p2_first_tail_group_)
             or snake_head_bricks_collision(p2_head)
             or snake_snake_collision(p2_head, p1_head_group, p1_tail_group)):
@@ -104,10 +118,10 @@ def p2_is_game_over(state, p1_head, p1_tail_group, p1_first_tail_group,
     return state
 
 
-def is_game_over(state, head, tail_group, first_tail_group_):
+def is_game_over(state, head, tail_group, first_tail_group_, transparency):
     """Checks every state what causes game over"""
     # Player 1
-    if (out_of_screen(head)
+    if (out_of_screen(head, transparency)
             or head_tail_collision(head, tail_group, first_tail_group_)
             or snake_head_bricks_collision(head)):
         pygame.time.wait(3000)
@@ -206,6 +220,7 @@ brick_intensity = 0
 bg_color = (0, 0, 0)
 game_state = "main_menu"
 game_over_init = True
+edge_transparency = True
 
 # Player 1
 snake_tail_id = 0
@@ -1027,7 +1042,9 @@ while run:
                 snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
                 snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
 
-            game_state = is_game_over(game_state, snake_head, snake_tail_group, first_tail_group)
+            game_state = is_game_over(game_state, snake_head,
+                                      snake_tail_group, first_tail_group,
+                                      edge_transparency)
 
             current_time = pygame.time.get_ticks()
 
@@ -1263,7 +1280,7 @@ while run:
 
             game_state = p2_is_game_over(game_state, snake_head, snake_tail_group, first_tail_group,
                                          p2_snake_head, p2_snake_tail_group, p2_first_tail_group,
-                                         snake_head_group, p2_snake_head_group)
+                                         snake_head_group, p2_snake_head_group, edge_transparency)
 
             current_time = pygame.time.get_ticks()
 

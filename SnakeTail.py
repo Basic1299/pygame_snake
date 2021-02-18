@@ -29,6 +29,7 @@ class SnakeTail(pygame.sprite.Sprite):
         self.coors_for_dir_change_delete()
         self.spawn_tail_part()
         self.movement()
+        self.move_through_edge(800, 600)
         self.color_change()
         self.time_update()
 
@@ -40,7 +41,7 @@ class SnakeTail(pygame.sprite.Sprite):
         """Sets initial direction of a part based on the direction of a part in front of it"""
         if self.preview_part.dir == "RIGHT":
             return "RIGHT"
-        elif self.preview_part.dir == "LEFT" :
+        elif self.preview_part.dir == "LEFT":
             return "LEFT"
         elif self.preview_part.dir == "UP":
             return "UP"
@@ -58,6 +59,20 @@ class SnakeTail(pygame.sprite.Sprite):
                 self.dir = "UP"
             elif self.coors == coors and direction == "DOWN":
                 self.dir = "DOWN"
+
+    def move_through_edge(self, width, height):
+        if self.dir == "RIGHT":
+            if self.rect.left > width:
+                self.rect.centerx = 0
+        elif self.dir == "LEFT":
+            if self.rect.right < 0:
+                self.rect.centerx = width
+        elif self.dir == "UP":
+            if self.rect.bottom < 0:
+                self.rect.centery = height
+        elif self.dir == "DOWN":
+            if self.rect.top > height:
+                self.rect.centery = 0
 
     def coors_for_dir_change_delete(self):
         """Deletes a spot for direction changes when the last part of a tail collides it"""

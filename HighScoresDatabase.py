@@ -52,27 +52,28 @@ class HighScoresDB:
     def add_record(self, name, score):
         """Adds record to the table (Keeps only 5 records there) if the table exists, else create it."""
         if self.table_exists("players"):
-            if len(self.all_records(False)) < 5:
-                self.c.execute(f"INSERT INTO players VALUES (:name, :score)",
-                            {
-                            "name": name,
-                            "score": score,
-                            }
-                                )
-                self.conn.commit()
-            else:
-                min_score_record = self.find_min_score()
-
-                if min_score_record[1] < score:
-                    self.delete_score(min_score_record)
-
+            if score > 0:
+                if len(self.all_records(False)) < 5:
                     self.c.execute(f"INSERT INTO players VALUES (:name, :score)",
                                    {
-                                       "name": name,
-                                       "score": score,
-                                   }
-                                )
+                                        "name": name,
+                                        "score": score,
+                                    }
+                                  )
                     self.conn.commit()
+                else:
+                    min_score_record = self.find_min_score()
+
+                    if min_score_record[1] < score:
+                        self.delete_score(min_score_record)
+
+                        self.c.execute(f"INSERT INTO players VALUES (:name, :score)",
+                                       {
+                                           "name": name,
+                                           "score": score,
+                                       }
+                                    )
+                        self.conn.commit()
         else:
             self.create_table()
             self.add_record(name, score)
