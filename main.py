@@ -199,7 +199,7 @@ current_time = 0
 pressed_time = 0
 brick_intensity = 0
 bg_color = (50, 50, 50)
-game_state = "player2_menu"
+game_state = "main_menu"
 game_over_init = True
 
 # Player 1
@@ -211,7 +211,7 @@ menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
 # Player 2
 p2_snake_tail_id = 0
 p2_snake_speed = 2
-p2_snake_color = "RED"
+p2_snake_color = "GREEN"
 p2_menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
 
 # Objects Initials
@@ -228,25 +228,9 @@ p2_snake_head_group = pygame.sprite.Group()
 p2_first_tail_group = pygame.sprite.Group()
 p2_snake_tail_group = pygame.sprite.Group()
 
+# Common
 food_group = pygame.sprite.Group()
-
 brick_group = pygame.sprite.Group()
-
-# 2 players initials (DELETE AFTER CREATING MENU FEATURE!)
-# Player 2
-p2_snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
-                          random.randint(30, SCREEN_HEIGHT - 50),
-                          p2_snake_speed, p2_snake_color, "Tester2")
-p2_snake_head_group.add(p2_snake_head)
-p2_score = Score()
-
-# Player 1
-snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
-                       random.randint(30, SCREEN_HEIGHT - 50),
-                       snake_speed, snake_color, "Tester1")
-snake_head_group.add(snake_head)
-food_group.add(spawn_food(), spawn_food())
-score = Score()
 
 # GAME STATES [main_menu, player1_menu, player1_game, player2_menu, player2_game, over]
 
@@ -267,9 +251,15 @@ while run:
                     if menu.option > 0:
                         menu.option -= 1
 
+                    elif menu.option == 0:
+                        menu.option = 2
+
                 elif event.key == pygame.K_DOWN:
                     if menu.option < 2:
                         menu.option += 1
+
+                    elif menu.option == 2:
+                        menu.option = 0
 
                 if event.key == pygame.K_RETURN:
                     # Player 1
@@ -287,25 +277,26 @@ while run:
                         pygame.quit()
                         exit()
 
-        screen.fill(bg_color)
+        if game_state == "main_menu":
+            screen.fill(bg_color)
 
-        # Title
-        menu.draw_text(title_font, "S n a k e", (0, 255, 0), (SCREEN_WIDTH//2, 80))
+            # Title
+            menu.draw_text(title_font, "S n a k e", (0, 255, 0), (SCREEN_WIDTH//2, 80))
 
-        # Options
-        menu.draw_text(option_font, "One player", (0, 255, 0), (SCREEN_WIDTH // 2, 250))
-        menu.draw_text(option_font, "Two players", (0, 255, 0), (SCREEN_WIDTH // 2, 300))
-        menu.draw_text(option_font, "Exit", (0, 255, 0), (SCREEN_WIDTH // 2, 350))
+            # Options
+            menu.draw_text(option_font, "One player", (0, 255, 0), (SCREEN_WIDTH // 2, 250))
+            menu.draw_text(option_font, "Two players", (0, 255, 0), (SCREEN_WIDTH // 2, 300))
+            menu.draw_text(option_font, "Exit", (0, 255, 0), (SCREEN_WIDTH // 2, 350))
 
-        # Draw borders
-        if menu.option == 0:
-            menu.draw_border(SCREEN_WIDTH // 2 - 92, 232, (0, 255, 0))
-        elif menu.option == 1:
-            menu.draw_border(SCREEN_WIDTH // 2 - 92, 282, (0, 255, 0))
-        elif menu.option == 2:
-            menu.draw_border(SCREEN_WIDTH // 2 - 92, 332, (0, 255, 0))
+            # Draw borders
+            if menu.option == 0:
+                menu.draw_border(SCREEN_WIDTH // 2 - 92, 232, (0, 255, 0))
+            elif menu.option == 1:
+                menu.draw_border(SCREEN_WIDTH // 2 - 92, 282, (0, 255, 0))
+            elif menu.option == 2:
+                menu.draw_border(SCREEN_WIDTH // 2 - 92, 332, (0, 255, 0))
 
-        pygame.display.flip()
+            pygame.display.flip()
 
     # PLAYER 1 MENU
     elif game_state == "player1_menu":
@@ -313,12 +304,23 @@ while run:
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.KEYDOWN:
+                # Back
                 if event.key == pygame.K_ESCAPE:
-                    run = False
+                    game_state = "main_menu"
+
+                    # reset options
+                    menu.option = 0
+                    menu.difficulty_option = 1
+                    menu.color_option = 0
+                    menu.name = ""
 
                 elif event.key == pygame.K_UP:
                     if menu.option > 0:
                         menu.option -= 1
+                        menu.invalid_name = False
+
+                    elif menu.option == 0:
+                        menu.option = 5
                         menu.invalid_name = False
 
                 elif event.key == pygame.K_DOWN:
@@ -326,10 +328,14 @@ while run:
                         menu.option += 1
                         menu.invalid_name = False
 
+                    elif menu.option == 5:
+                        menu.option = 0
+                        menu.invalid_name = False
+
                 if event.key == pygame.K_RETURN:
                     # Start
                     if menu.option == 4:
-                        if menu.name != "":
+                        if len(menu.name) != 0:
                             menu.option = 0
                             create_brick_group(brick_intensity)
 
@@ -347,9 +353,13 @@ while run:
                     # Back
                     elif menu.option == 5:
                         game_state = "main_menu"
+
+                        # reset options
                         menu.option = 0
                         menu.difficulty_option = 1
                         menu.color_option = 0
+                        menu.wall_option = 0
+                        menu.name = ""
 
                 # Side options colors
                 if menu.is_color_option:
@@ -388,10 +398,16 @@ while run:
                     else:
                         if menu.name.count("w") >= 3:
                             if len(menu.name) <= 7:
-                                menu.name += event.unicode
+                                if (event.key != pygame.K_RETURN
+                                        and event.key != pygame.K_SPACE
+                                        and event.key != pygame.K_ESCAPE):
+                                    menu.name += event.unicode
                         else:
                             if len(menu.name) <= 9:
-                                menu.name += event.unicode
+                                if (event.key != pygame.K_RETURN
+                                        and event.key != pygame.K_SPACE
+                                        and event.key != pygame.K_ESCAPE):
+                                    menu.name += event.unicode
 
         screen.fill(bg_color)
 
@@ -518,7 +534,7 @@ while run:
             menu.is_difficulty_option = False
             menu.is_wall_option = False
 
-        # Draw side borders
+        # Draw color side borders
         if menu.is_color_option:
             # GREEN
             if menu.color_option == 0:
@@ -541,22 +557,166 @@ while run:
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.KEYDOWN:
+                # Back
                 if event.key == pygame.K_ESCAPE:
-                    run = False
+                    game_state = "main_menu"
+
+                    # reset options
+                    menu.option = 0
+                    menu.difficulty_option = 1
+                    menu.color_option = 0
+                    menu.wall_option = 0
+                    menu.name = ""
+
+                    p2_menu.color_option = 0
+                    p2_menu.name = ""
 
                 if event.key == pygame.K_UP:
                     if menu.option > 0:
                         menu.option -= 1
+                        menu.invalid_name = False
+                        p2_menu.invalid_name = False
+
+                    elif menu.option == 0:
+                        menu.option = 7
+                        menu.invalid_name = False
+                        p2_menu.invalid_name = False
 
                 elif event.key == pygame.K_DOWN:
                     if menu.option < 7:
                         menu.option += 1
+                        menu.invalid_name = False
+                        p2_menu.invalid_name = False
+
+                    elif menu.option == 7:
+                        menu.option = 0
+                        menu.invalid_name = False
+                        p2_menu.invalid_name = False
 
                 if event.key == pygame.K_RETURN:
+                    # Start
+                    if menu.option == 6:
+                        if len(menu.name) != 0 and len(p2_menu.name) != 0:
+                            menu.option = 0
+                            create_brick_group(brick_intensity)
+
+                            # Spawn 2 foods
+                            food_group.add(spawn_food(), spawn_food())
+
+                            # Player 1 initial
+                            snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
+                                                   random.randint(30, SCREEN_HEIGHT - 50),
+                                                   snake_speed, snake_color, menu.name)
+                            snake_head_group.add(snake_head)
+                            score = Score()
+
+                            # Player 2 initial
+                            p2_snake_head = SnakeHead(random.randint(30, SCREEN_WIDTH - 50),
+                                                      random.randint(30, SCREEN_HEIGHT - 50),
+                                                      p2_snake_speed, p2_snake_color, p2_menu.name)
+                            p2_snake_head_group.add(p2_snake_head)
+                            p2_score = Score()
+
+                            game_state = "player2_game"
+                        else:
+                            if len(menu.name) == 0:
+                                menu.invalid_name = True
+                            if len(p2_menu.name) == 0:
+                                p2_menu.invalid_name = True
+
                     # Back
                     if menu.option == 7:
-                        menu.option = 0
                         game_state = "main_menu"
+
+                        # reset options
+                        menu.option = 0
+                        menu.difficulty_option = 1
+                        menu.color_option = 0
+                        menu.name = ""
+
+                        p2_menu.color_option = 0
+                        p2_menu.name = ""
+
+                # Side options difficulty
+                if menu.is_difficulty_option:
+                    if event.key == pygame.K_LEFT:
+                        if menu.difficulty_option > 0:
+                            menu.difficulty_option -= 1
+                            snake_speed = menu.difficulty_option + 1
+                            p2_snake_speed = menu.difficulty_option + 1
+                    elif event.key == pygame.K_RIGHT:
+                        if menu.difficulty_option < 4:
+                            menu.difficulty_option += 1
+                            snake_speed = menu.difficulty_option + 1
+                            p2_snake_speed = menu.difficulty_option + 1
+
+                # Side options wall intensity
+                if menu.is_wall_option:
+                    if event.key == pygame.K_LEFT:
+                        if menu.wall_option > 0:
+                            menu.wall_option -= 1
+                    elif event.key == pygame.K_RIGHT:
+                        if menu.wall_option < 3:
+                            menu.wall_option += 1
+                    brick_intensity = menu.wall_option
+
+                # Name input
+                # Player 1
+                if menu.is_name:
+                    if event.key == pygame.K_BACKSPACE:
+                        menu.name = menu.name[:-1]
+                    else:
+                        if menu.name.count("w") >= 3:
+                            if len(menu.name) <= 7:
+                                if (event.key != pygame.K_RETURN
+                                        and event.key != pygame.K_SPACE
+                                        and event.key != pygame.K_ESCAPE):
+                                    menu.name += event.unicode
+                        else:
+                            if len(menu.name) <= 9:
+                                if (event.key != pygame.K_RETURN
+                                        and event.key != pygame.K_SPACE
+                                        and event.key != pygame.K_ESCAPE):
+                                    menu.name += event.unicode
+
+                # Side options colors
+                # Player 1
+                if menu.is_color_option:
+                    if event.key == pygame.K_LEFT:
+                        if menu.color_option > 0:
+                            menu.color_option -= 1
+                    elif event.key == pygame.K_RIGHT:
+                        if menu.color_option < 2:
+                            menu.color_option += 1
+
+                # Name input
+                # Player 2
+                if p2_menu.is_name:
+                    if event.key == pygame.K_BACKSPACE:
+                        p2_menu.name = p2_menu.name[:-1]
+                    else:
+                        if p2_menu.name.count("w") >= 3:
+                            if len(p2_menu.name) <= 7:
+                                if (event.key != pygame.K_RETURN
+                                        and event.key != pygame.K_SPACE
+                                        and event.key != pygame.K_ESCAPE):
+                                    p2_menu.name += event.unicode
+                        else:
+                            if len(p2_menu.name) <= 9:
+                                if (event.key != pygame.K_RETURN
+                                        and event.key != pygame.K_SPACE
+                                        and event.key != pygame.K_ESCAPE):
+                                    p2_menu.name += event.unicode
+
+                # Side options colors
+                # Player 2
+                if p2_menu.is_color_option:
+                    if event.key == pygame.K_LEFT:
+                        if p2_menu.color_option > 0:
+                            p2_menu.color_option -= 1
+                    elif event.key == pygame.K_RIGHT:
+                        if p2_menu.color_option < 2:
+                            p2_menu.color_option += 1
 
         screen.fill(bg_color)
 
@@ -572,13 +732,19 @@ while run:
             else:
                 menu.draw_text(option_font, "Player 1", (255, 0, 0), (250, 200))
         else:
-            pass
+            name_surf = option_font.render(menu.name, True, (255, 255, 255))
+            screen.blit(name_surf, name_surf.get_rect(center=(250, 200)))
 
         # Color
         if menu.option != 1:
             menu.draw_text(option_font, "Skin color", (0, 255, 0), (250, 250))
         else:
-            pass
+            # LEFT GREEN
+            pygame.draw.rect(screen, (0, 255, 0), (185, 235, 30, 30), 0)
+            # MIDDLE RED
+            pygame.draw.rect(screen, (255, 0, 0), (230, 235, 30, 30), 0)
+            # RIGHT BLUE
+            pygame.draw.rect(screen, (0, 0, 255), (275, 235, 30, 30), 0)
 
         # Player 2
         if menu.option != 2:
@@ -587,56 +753,138 @@ while run:
             else:
                 p2_menu.draw_text(option_font, "Player 2", (255, 0, 0), (550, 200))
         else:
-            pass
+            name_surf = option_font.render(p2_menu.name, True, (255, 255, 255))
+            screen.blit(name_surf, name_surf.get_rect(center=(550, 200)))
 
         # Color
         if menu.option != 3:
             p2_menu.draw_text(option_font, "Skin color", (0, 255, 0), (550, 250))
         else:
-            pass
+            # LEFT GREEN
+            pygame.draw.rect(screen, (0, 255, 0), (485, 235, 30, 30), 0)
+            # MIDDLE RED
+            pygame.draw.rect(screen, (255, 0, 0), (530, 235, 30, 30), 0)
+            # RIGHT BLUE
+            pygame.draw.rect(screen, (0, 0, 255), (575, 235, 30, 30), 0)
 
         # Common
         # Speed
         if menu.option != 4:
             menu.draw_text(option_font, "Speed", (0, 255, 0), (SCREEN_WIDTH // 2, 350))
         else:
-            pass
+            pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 76, 334, 157, 31), 2)
+
+            if (
+                    menu.difficulty_option == 0
+                    or menu.difficulty_option == 1
+                    or menu.difficulty_option == 2
+                    or menu.difficulty_option == 3
+                    or menu.difficulty_option == 4
+            ):
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 334, 30, 30), 0)
+
+            if (
+                    menu.difficulty_option == 1
+                    or menu.difficulty_option == 2
+                    or menu.difficulty_option == 3
+                    or menu.difficulty_option == 4
+            ):
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 45, 334, 30, 30), 0)
+
+            if (
+                    menu.difficulty_option == 2
+                    or menu.difficulty_option == 3
+                    or menu.difficulty_option == 4
+            ):
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 15, 334, 30, 30), 0)
+
+            if (
+                    menu.difficulty_option == 3
+                    or menu.difficulty_option == 4
+            ):
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 + 15, 334, 30, 30), 0)
+
+            if menu.difficulty_option == 4:
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 + 45, 334, 37, 30), 0)
 
         # Wall Intensity
         if menu.option != 5:
             menu.draw_text(option_font, "Wall intensity", (0, 255, 0), (SCREEN_WIDTH // 2, 400))
         else:
-            pass
+            pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 76, 384, 157, 31), 2)
+
+            if menu.wall_option == 1 or menu.wall_option == 2 or menu.wall_option == 3:
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 75, 384, 50, 30), 0)
+            if menu.wall_option == 2 or menu.wall_option == 3:
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 - 25, 384, 50, 30), 0)
+            if menu.wall_option == 3:
+                pygame.draw.rect(screen, (255, 255, 255), (SCREEN_WIDTH // 2 + 25, 384, 55, 30), 0)
 
         # Start, Back
         menu.draw_text(option_font, "Start", (0, 255, 0), (SCREEN_WIDTH // 2, 500))
         menu.draw_text(option_font, "Back", (0, 255, 0), (SCREEN_WIDTH // 2, 550))
-
 
         # DRAW BORDERS
         # player 1
         # Name
         if menu.option == 0:
             menu.draw_border(152, 180, (0, 255, 0))
+            menu.is_name = True
+            menu.is_color_option = False
+            p2_menu.is_name = False
+            p2_menu.is_color_option = False
+            menu.is_difficulty_option = False
+            menu.is_wall_option = False
+
         # Color
         elif menu.option == 1:
             menu.draw_border(152, 230, (0, 255, 0))
+            menu.is_color_option = True
+            menu.is_name = False
+            p2_menu.is_name = False
+            p2_menu.is_color_option = False
+            menu.is_difficulty_option = False
+            menu.is_wall_option = False
 
         # player 2
         # Name
         elif menu.option == 2:
             menu.draw_border(452, 180, (0, 255, 0))
+            p2_menu.is_name = True
+            p2_menu.is_color_option = False
+            menu.is_difficulty_option = False
+            menu.is_wall_option = False
+            menu.is_color_option = False
+            menu.is_name = False
         # Color
         elif menu.option == 3:
             menu.draw_border(452, 230, (0, 255, 0))
+            p2_menu.is_color_option = True
+            p2_menu.is_name = False
+            menu.is_color_option = False
+            menu.is_difficulty_option = False
+            menu.is_wall_option = False
+            menu.is_name = False
 
         # Common
         # Speed
         elif menu.option == 4:
             menu.draw_border(SCREEN_WIDTH // 2 - 92, 330, (0, 255, 0))
+            menu.is_difficulty_option = True
+            menu.is_wall_option = False
+            menu.is_name = False
+            p2_menu.is_color_option = False
+            p2_menu.is_name = False
+            p2_menu.is_color_option = False
         # Wall intensity
         elif menu.option == 5:
             menu.draw_border(SCREEN_WIDTH // 2 - 92, 380, (0, 255, 0))
+            menu.is_wall_option = True
+            menu.is_name = False
+            p2_menu.is_color_option = False
+            p2_menu.is_name = False
+            p2_menu.is_color_option = False
+            menu.is_difficulty_option = False
 
         # Start
         elif menu.option == 6:
@@ -645,6 +893,36 @@ while run:
         elif menu.option == 7:
             menu.draw_border(SCREEN_WIDTH // 2 - 92, 530, (0, 255, 0))
 
+        # Draw color side borders
+        # Player 1
+        if menu.is_color_option:
+            # GREEN
+            if menu.color_option == 0:
+                snake_color = "GREEN"
+                pygame.draw.rect(screen, (0, 100, 0), (190, 240, 20, 20), 0)
+            # RED
+            elif menu.color_option == 1:
+                snake_color = "RED"
+                pygame.draw.rect(screen, (100, 0, 0), (235, 240, 20, 20), 0)
+            # BLUE
+            elif menu.color_option == 2:
+                snake_color = "BLUE"
+                pygame.draw.rect(screen, (0, 0, 100), (280, 240, 20, 20), 0)
+
+        # Player 2
+        if p2_menu.is_color_option:
+            # GREEN
+            if p2_menu.color_option == 0:
+                p2_snake_color = "GREEN"
+                pygame.draw.rect(screen, (0, 100, 0), (490, 240, 20, 20), 0)
+            # RED
+            elif p2_menu.color_option == 1:
+                p2_snake_color = "RED"
+                pygame.draw.rect(screen, (100, 0, 0), (535, 240, 20, 20), 0)
+            # BLUE
+            elif p2_menu.color_option == 2:
+                p2_snake_color = "BLUE"
+                pygame.draw.rect(screen, (0, 0, 100), (580, 240, 20, 20), 0)
 
         pygame.display.flip()
 
@@ -654,128 +932,140 @@ while run:
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.KEYDOWN:
+                # Reset and back to the menu
                 if event.key == pygame.K_ESCAPE:
-                    run = False
+                    game_state = "main_menu"
+                    # Reset Variables
+                    brick_intensity = 0
+                    current_time = 0
+                    pressed_time = 0
+                    game_over_init = True
+
+                    # Player 1
+                    snake_speed = 2
+                    snake_tail_id = 0
+                    snake_color = "GREEN"
+
+                    # Objects and sprite groups deletes, empties
+                    food_group.empty()
+
+                    # Player 1
+                    del snake_head
+                    snake_head_group.empty()
+
+                    first_tail_group.empty()
+                    snake_tail_group.empty()
+                    brick_group.empty()
+
+                    del menu
+                    menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
+
+                    del score
 
                 # Create two tails parts when movement keys pressed
-                if snake_head.dir == "":
-                    if event.key == pygame.K_RIGHT:
-                        snake_head.dir = "RIGHT"
-                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
-                                                         snake_tail_group, first_tail_group)
-                        snake_head.create_eat_spot()
+                if game_state == "player1_game":
+                    if snake_head.dir == "":
+                        if event.key == pygame.K_RIGHT:
+                            snake_head.dir = "RIGHT"
+                            snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                             snake_tail_group, first_tail_group)
+                            snake_head.create_eat_spot()
 
-                    elif event.key == pygame.K_LEFT:
-                        snake_head.dir = "LEFT"
-                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
-                                                         snake_tail_group, first_tail_group)
-                        snake_head.create_eat_spot()
+                        elif event.key == pygame.K_LEFT:
+                            snake_head.dir = "LEFT"
+                            snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                             snake_tail_group, first_tail_group)
+                            snake_head.create_eat_spot()
 
-                    elif event.key == pygame.K_UP:
-                        snake_head.dir = "UP"
-                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
-                                                         snake_tail_group, first_tail_group)
-                        snake_head.create_eat_spot()
+                        elif event.key == pygame.K_UP:
+                            snake_head.dir = "UP"
+                            snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                             snake_tail_group, first_tail_group)
+                            snake_head.create_eat_spot()
 
-                    elif event.key == pygame.K_DOWN:
-                        snake_head.dir = "DOWN"
-                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
-                                                         snake_tail_group, first_tail_group)
-                        snake_head.create_eat_spot()
+                        elif event.key == pygame.K_DOWN:
+                            snake_head.dir = "DOWN"
+                            snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                             snake_tail_group, first_tail_group)
+                            snake_head.create_eat_spot()
 
                 # Movement Keys
-                if snake_head.distance_between == 0:
-                    if event.key == pygame.K_LEFT and snake_head.dir != "RIGHT" and snake_head.dir != "LEFT":
-                        snake_head.dir = "LEFT"
+                if game_state == "player1_game":
+                    if snake_head.distance_between == 0:
+                        if event.key == pygame.K_LEFT and snake_head.dir != "RIGHT" and snake_head.dir != "LEFT":
+                            snake_head.dir = "LEFT"
 
-                        if snake_head.tail_length > 0:
-                            snake_head.create_new_dir_spot()
+                            if snake_head.tail_length > 0:
+                                snake_head.create_new_dir_spot()
 
-                    elif event.key == pygame.K_RIGHT and snake_head.dir != "LEFT" and snake_head.dir != "RIGHT":
-                        snake_head.dir = "RIGHT"
+                        elif event.key == pygame.K_RIGHT and snake_head.dir != "LEFT" and snake_head.dir != "RIGHT":
+                            snake_head.dir = "RIGHT"
 
-                        if snake_head.tail_length > 0:
-                            snake_head.create_new_dir_spot()
+                            if snake_head.tail_length > 0:
+                                snake_head.create_new_dir_spot()
 
-                    elif event.key == pygame.K_UP and snake_head.dir != "DOWN" and snake_head.dir != "UP":
-                        snake_head.dir = "UP"
+                        elif event.key == pygame.K_UP and snake_head.dir != "DOWN" and snake_head.dir != "UP":
+                            snake_head.dir = "UP"
 
-                        if snake_head.tail_length > 0:
-                            snake_head.create_new_dir_spot()
+                            if snake_head.tail_length > 0:
+                                snake_head.create_new_dir_spot()
 
-                    elif event.key == pygame.K_DOWN and snake_head.dir != "UP" and snake_head.dir != "DOWN":
-                        snake_head.dir = "DOWN"
+                        elif event.key == pygame.K_DOWN and snake_head.dir != "UP" and snake_head.dir != "DOWN":
+                            snake_head.dir = "DOWN"
 
-                        if snake_head.tail_length > 0:
-                            snake_head.create_new_dir_spot()
-
-                # Test
-                if event.key == pygame.K_SPACE:
-                    score.add_score(1)
-
-                # test
-                if event.key == pygame.K_k:
-                    snake_head.dir = ""
-                    snake_tail_id = 0
-                    snake_head.eat_spots = []
-                    snake_head.spawn_tail = False
-                    snake_head.tail_length = 0
-                    snake_tail_group.empty()
-                    first_tail_group.empty()
-                    score.score = 0
-
-                    snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
-                    snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
+                            if snake_head.tail_length > 0:
+                                snake_head.create_new_dir_spot()
 
         # Respawn snake head if it collides bricks on the spawn
-        while snake_head_init_brick_collision(snake_head):
-            snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
-            snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
+        if game_state == "player1_game":
+            while snake_head_init_brick_collision(snake_head):
+                snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
+                snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
 
-        game_state = is_game_over(game_state, snake_head, snake_tail_group, first_tail_group)
+            game_state = is_game_over(game_state, snake_head, snake_tail_group, first_tail_group)
 
-        current_time = pygame.time.get_ticks()
+            current_time = pygame.time.get_ticks()
 
-        screen.fill(bg_color)
+            screen.fill(bg_color)
 
-        # Respawn food spot if it spawns on the tail or bricks
-        respawn_food(snake_tail_group)
+            # Respawn food spot if it spawns on the tail or bricks
+            respawn_food(snake_tail_group)
 
-        # Grow tail when eat spot reaches end of the snake
-        if snake_head.spawn_tail:
-            snake_head.spawn_tail = False
-            snake_tail_id = create_tail_part(snake_tail_id, snake_head,
-                                             snake_head_group, snake_tail_group,
-                                             first_tail_group)
+            # Grow tail when eat spot reaches end of the snake
+            if snake_head.spawn_tail:
+                snake_head.spawn_tail = False
+                snake_tail_id = create_tail_part(snake_tail_id, snake_head,
+                                                 snake_head_group, snake_tail_group,
+                                                 first_tail_group)
 
-        # Snake head and food collision
-        for food in food_group:
-            if pygame.sprite.collide_rect(snake_head, food):
-                food.kill()
-                score.add_score(1)
-                food = spawn_food()
-                food_group.add(food)
+            # Snake head and food collision
+            for food in food_group:
+                if pygame.sprite.collide_rect(snake_head, food):
+                    food.kill()
+                    score.add_score(1)
+                    food = spawn_food()
+                    food_group.add(food)
 
-                if snake_head.tail_length > 0:
-                    snake_head.create_eat_spot()
-                else:
-                    snake_head.spawn_tail = True
+                    if snake_head.tail_length > 0:
+                        snake_head.create_eat_spot()
+                    else:
+                        snake_head.spawn_tail = True
 
-        # Drawing
-        food_group.update()
-        food_group.draw(screen)
+            # Drawing
+            food_group.update()
+            food_group.draw(screen)
 
-        snake_tail_group.update()
-        snake_tail_group.draw(screen)
+            snake_tail_group.update()
+            snake_tail_group.draw(screen)
 
-        snake_head_group.update()
-        snake_head_group.draw(screen)
+            snake_head_group.update()
+            snake_head_group.draw(screen)
 
-        brick_group.draw(screen)
+            brick_group.draw(screen)
 
-        score.draw_score(screen, (15, 15), snake_head.snake_color)
+            score.draw_score(screen, (15, 15), snake_head.snake_color)
 
-        pygame.display.flip()
+            pygame.display.flip()
 
     # 2 PLAYERS GAME
     elif game_state == "player2_game":
@@ -783,240 +1073,271 @@ while run:
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.KEYDOWN:
+                # Reset and back to the main menu
                 if event.key == pygame.K_ESCAPE:
-                    run = False
+                    game_state = "main_menu"
 
-                # Create two tails parts when movement keys pressed
-                # Player 1
-                if snake_head.dir == "":
-                    if event.key == pygame.K_RIGHT:
-                        snake_head.dir = "RIGHT"
-                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
-                                                         snake_tail_group, first_tail_group)
-                        snake_head.create_eat_spot()
+                    # Reset Variables
+                    brick_intensity = 0
+                    current_time = 0
+                    pressed_time = 0
+                    game_over_init = True
 
-                    elif event.key == pygame.K_LEFT:
-                        snake_head.dir = "LEFT"
-                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
-                                                         snake_tail_group, first_tail_group)
-                        snake_head.create_eat_spot()
-
-                    elif event.key == pygame.K_UP:
-                        snake_head.dir = "UP"
-                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
-                                                         snake_tail_group, first_tail_group)
-                        snake_head.create_eat_spot()
-
-                    elif event.key == pygame.K_DOWN:
-                        snake_head.dir = "DOWN"
-                        snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
-                                                         snake_tail_group, first_tail_group)
-                        snake_head.create_eat_spot()
-
-                # Create two tails parts when movement keys pressed
-                # Player 2
-                if p2_snake_head.dir == "":
-                    if event.key == pygame.K_d:
-                        p2_snake_head.dir = "RIGHT"
-                        p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head, p2_snake_head_group,
-                                                            p2_snake_tail_group, p2_first_tail_group)
-                        p2_snake_head.create_eat_spot()
-
-                    elif event.key == pygame.K_a:
-                        p2_snake_head.dir = "LEFT"
-                        p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head, p2_snake_head_group,
-                                                            p2_snake_tail_group, p2_first_tail_group)
-                        p2_snake_head.create_eat_spot()
-
-                    elif event.key == pygame.K_w:
-                        p2_snake_head.dir = "UP"
-                        p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head, p2_snake_head_group,
-                                                            p2_snake_tail_group, p2_first_tail_group)
-                        p2_snake_head.create_eat_spot()
-
-                    elif event.key == pygame.K_s:
-                        p2_snake_head.dir = "DOWN"
-                        p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head, p2_snake_head_group,
-                                                            p2_snake_tail_group, p2_first_tail_group)
-                        p2_snake_head.create_eat_spot()
-
-                # Movement Keys
-                # Player 1
-                if snake_head.distance_between == 0:
-                    if event.key == pygame.K_LEFT and snake_head.dir != "RIGHT" and snake_head.dir != "LEFT":
-                        snake_head.dir = "LEFT"
-
-                        if snake_head.tail_length > 0:
-                            snake_head.create_new_dir_spot()
-
-                    elif event.key == pygame.K_RIGHT and snake_head.dir != "LEFT" and snake_head.dir != "RIGHT":
-                        snake_head.dir = "RIGHT"
-
-                        if snake_head.tail_length > 0:
-                            snake_head.create_new_dir_spot()
-
-                    elif event.key == pygame.K_UP and snake_head.dir != "DOWN" and snake_head.dir != "UP":
-                        snake_head.dir = "UP"
-
-                        if snake_head.tail_length > 0:
-                            snake_head.create_new_dir_spot()
-
-                    elif event.key == pygame.K_DOWN and snake_head.dir != "UP" and snake_head.dir != "DOWN":
-                        snake_head.dir = "DOWN"
-
-                        if snake_head.tail_length > 0:
-                            snake_head.create_new_dir_spot()
-
-                # Test
-                if event.key == pygame.K_SPACE:
-                    score.add_score(1)
-
-                # test
-                if event.key == pygame.K_k:
-                    snake_head.dir = ""
+                    # Player 1
+                    snake_speed = 2
                     snake_tail_id = 0
-                    snake_head.eat_spots = []
-                    snake_head.spawn_tail = False
-                    snake_head.tail_length = 0
-                    snake_tail_group.empty()
-                    first_tail_group.empty()
-                    score.score = 0
+                    snake_color = "GREEN"
 
-                    snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
-                    snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
+                    # Objects and sprite groups deletes, empties
+                    food_group.empty()
+
+                    # Player 1
+                    del snake_head
+                    snake_head_group.empty()
+
+                    first_tail_group.empty()
+                    snake_tail_group.empty()
+                    brick_group.empty()
+
+                    del menu
+                    menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
+
+                    del score
+
+                    # Player 2
+                    if len(p2_snake_head_group) > 0:
+                        p2_snake_speed = 2
+                        p2_snake_tail_id = 0
+                        p2_snake_color = "GREEN"
+
+                        # Objects and sprite groups deletes, empties
+                        del p2_snake_head
+                        p2_snake_head_group.empty()
+
+                        p2_first_tail_group.empty()
+                        p2_snake_tail_group.empty()
+
+                        del p2_menu
+                        p2_menu = Menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
+
+                        del p2_score
+
+                # Create two tails parts when movement keys pressed
+                # Player 1
+                if game_state == "player2_game":
+                    if snake_head.dir == "":
+                        if event.key == pygame.K_RIGHT:
+                            snake_head.dir = "RIGHT"
+                            snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                             snake_tail_group, first_tail_group)
+                            snake_head.create_eat_spot()
+
+                        elif event.key == pygame.K_LEFT:
+                            snake_head.dir = "LEFT"
+                            snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                             snake_tail_group, first_tail_group)
+                            snake_head.create_eat_spot()
+
+                        elif event.key == pygame.K_UP:
+                            snake_head.dir = "UP"
+                            snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                             snake_tail_group, first_tail_group)
+                            snake_head.create_eat_spot()
+
+                        elif event.key == pygame.K_DOWN:
+                            snake_head.dir = "DOWN"
+                            snake_tail_id = create_tail_part(snake_tail_id, snake_head, snake_head_group,
+                                                             snake_tail_group, first_tail_group)
+                            snake_head.create_eat_spot()
+
+                    # Create two tails parts when movement keys pressed
+                    # Player 2
+                    if p2_snake_head.dir == "":
+                        if event.key == pygame.K_d:
+                            p2_snake_head.dir = "RIGHT"
+                            p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head, p2_snake_head_group,
+                                                                p2_snake_tail_group, p2_first_tail_group)
+                            p2_snake_head.create_eat_spot()
+
+                        elif event.key == pygame.K_a:
+                            p2_snake_head.dir = "LEFT"
+                            p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head, p2_snake_head_group,
+                                                                p2_snake_tail_group, p2_first_tail_group)
+                            p2_snake_head.create_eat_spot()
+
+                        elif event.key == pygame.K_w:
+                            p2_snake_head.dir = "UP"
+                            p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head, p2_snake_head_group,
+                                                                p2_snake_tail_group, p2_first_tail_group)
+                            p2_snake_head.create_eat_spot()
+
+                        elif event.key == pygame.K_s:
+                            p2_snake_head.dir = "DOWN"
+                            p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head, p2_snake_head_group,
+                                                                p2_snake_tail_group, p2_first_tail_group)
+                            p2_snake_head.create_eat_spot()
 
                 # Movement Keys
-                # Player 2
-                if p2_snake_head.distance_between == 0:
-                    if event.key == pygame.K_a and p2_snake_head.dir != "RIGHT" and p2_snake_head.dir != "LEFT":
-                        p2_snake_head.dir = "LEFT"
+                # Player 1
+                if game_state == "player2_game":
+                    if snake_head.distance_between == 0:
+                        if event.key == pygame.K_LEFT and snake_head.dir != "RIGHT" and snake_head.dir != "LEFT":
+                            snake_head.dir = "LEFT"
 
-                        if p2_snake_head.tail_length > 0:
-                            p2_snake_head.create_new_dir_spot()
+                            if snake_head.tail_length > 0:
+                                snake_head.create_new_dir_spot()
 
-                    elif event.key == pygame.K_d and p2_snake_head.dir != "LEFT" and p2_snake_head.dir != "RIGHT":
-                        p2_snake_head.dir = "RIGHT"
+                        elif event.key == pygame.K_RIGHT and snake_head.dir != "LEFT" and snake_head.dir != "RIGHT":
+                            snake_head.dir = "RIGHT"
 
-                        if p2_snake_head.tail_length > 0:
-                            p2_snake_head.create_new_dir_spot()
+                            if snake_head.tail_length > 0:
+                                snake_head.create_new_dir_spot()
 
-                    elif event.key == pygame.K_w and p2_snake_head.dir != "DOWN" and p2_snake_head.dir != "UP":
-                        p2_snake_head.dir = "UP"
+                        elif event.key == pygame.K_UP and snake_head.dir != "DOWN" and snake_head.dir != "UP":
+                            snake_head.dir = "UP"
 
-                        if p2_snake_head.tail_length > 0:
-                            p2_snake_head.create_new_dir_spot()
+                            if snake_head.tail_length > 0:
+                                snake_head.create_new_dir_spot()
 
-                    elif event.key == pygame.K_s and p2_snake_head.dir != "UP" and p2_snake_head.dir != "DOWN":
-                        p2_snake_head.dir = "DOWN"
+                        elif event.key == pygame.K_DOWN and snake_head.dir != "UP" and snake_head.dir != "DOWN":
+                            snake_head.dir = "DOWN"
 
-                        if p2_snake_head.tail_length > 0:
-                            p2_snake_head.create_new_dir_spot()
+                            if snake_head.tail_length > 0:
+                                snake_head.create_new_dir_spot()
+
+                    # Movement Keys
+                    # Player 2
+                    if p2_snake_head.distance_between == 0:
+                        if event.key == pygame.K_a and p2_snake_head.dir != "RIGHT" and p2_snake_head.dir != "LEFT":
+                            p2_snake_head.dir = "LEFT"
+
+                            if p2_snake_head.tail_length > 0:
+                                p2_snake_head.create_new_dir_spot()
+
+                        elif event.key == pygame.K_d and p2_snake_head.dir != "LEFT" and p2_snake_head.dir != "RIGHT":
+                            p2_snake_head.dir = "RIGHT"
+
+                            if p2_snake_head.tail_length > 0:
+                                p2_snake_head.create_new_dir_spot()
+
+                        elif event.key == pygame.K_w and p2_snake_head.dir != "DOWN" and p2_snake_head.dir != "UP":
+                            p2_snake_head.dir = "UP"
+
+                            if p2_snake_head.tail_length > 0:
+                                p2_snake_head.create_new_dir_spot()
+
+                        elif event.key == pygame.K_s and p2_snake_head.dir != "UP" and p2_snake_head.dir != "DOWN":
+                            p2_snake_head.dir = "DOWN"
+
+                            if p2_snake_head.tail_length > 0:
+                                p2_snake_head.create_new_dir_spot()
 
         # Respawn snake head if it collides bricks on the spawn
         # Player 1
-        while snake_head_init_brick_collision(snake_head):
-            snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
-            snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
+        if game_state == "player2_game":
+            while snake_head_init_brick_collision(snake_head):
+                snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
+                snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
 
-        # Respawn snake head if it collides bricks on the spawn
-        # Player 2
-        while snake_head_init_brick_collision(p2_snake_head):
-            p2_snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
-            p2_snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
+            # Respawn snake head if it collides bricks on the spawn
+            # Player 2
+            while snake_head_init_brick_collision(p2_snake_head):
+                p2_snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
+                p2_snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
 
-        # Respawn players if they collide on the on the beginning with each other
-        # Both Players
-        while (snake_snake_collision(snake_head, p2_snake_head_group, p2_snake_tail_group)
-                and snake_head.dir == ""
-                and p2_snake_head.dir == ""):
-            snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
-            snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
+            # Respawn players if they collide on the on the beginning with each other
+            # Both Players
+            while (snake_snake_collision(snake_head, p2_snake_head_group, p2_snake_tail_group)
+                    and snake_head.dir == ""
+                    and p2_snake_head.dir == ""):
+                snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
+                snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
 
-            p2_snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
-            p2_snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
+                p2_snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
+                p2_snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
 
-        game_state = p2_is_game_over(game_state, snake_head, snake_tail_group, first_tail_group,
-                                     p2_snake_head, p2_snake_tail_group, p2_first_tail_group,
-                                     snake_head_group, p2_snake_head_group)
+            game_state = p2_is_game_over(game_state, snake_head, snake_tail_group, first_tail_group,
+                                         p2_snake_head, p2_snake_tail_group, p2_first_tail_group,
+                                         snake_head_group, p2_snake_head_group)
 
-        current_time = pygame.time.get_ticks()
+            current_time = pygame.time.get_ticks()
 
-        screen.fill(bg_color)
+            screen.fill(bg_color)
 
-        # Respawn food spot if it spawns on the tail or bricks
-        # Player 1
-        respawn_food(snake_tail_group)
-        # Player 2
-        respawn_food(p2_snake_tail_group)
+            # Respawn food spot if it spawns on the tail or bricks
+            # Player 1
+            respawn_food(snake_tail_group)
+            # Player 2
+            respawn_food(p2_snake_tail_group)
 
-        # Grow tail when eat spot reaches end of the snake
-        # Player 1
-        if snake_head.spawn_tail:
-            snake_head.spawn_tail = False
-            snake_tail_id = create_tail_part(snake_tail_id, snake_head,
-                                             snake_head_group, snake_tail_group,
-                                             first_tail_group)
+            # Grow tail when eat spot reaches end of the snake
+            # Player 1
+            if snake_head.spawn_tail:
+                snake_head.spawn_tail = False
+                snake_tail_id = create_tail_part(snake_tail_id, snake_head,
+                                                 snake_head_group, snake_tail_group,
+                                                 first_tail_group)
 
-        # Player 2
-        if p2_snake_head.spawn_tail:
-            p2_snake_head.spawn_tail = False
-            p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head,
-                                                p2_snake_head_group, p2_snake_tail_group,
-                                                p2_first_tail_group)
+            # Player 2
+            if p2_snake_head.spawn_tail:
+                p2_snake_head.spawn_tail = False
+                p2_snake_tail_id = create_tail_part(p2_snake_tail_id, p2_snake_head,
+                                                    p2_snake_head_group, p2_snake_tail_group,
+                                                    p2_first_tail_group)
 
-        # Snake head and food collision
-        # Player 1
-        for food in food_group:
-            if pygame.sprite.collide_rect(snake_head, food):
-                food.kill()
-                score.add_score(1)
-                food = spawn_food()
-                food_group.add(food)
+            # Snake head and food collision
+            # Player 1
+            for food in food_group:
+                if pygame.sprite.collide_rect(snake_head, food):
+                    food.kill()
+                    score.add_score(1)
+                    food = spawn_food()
+                    food_group.add(food)
 
-                if snake_head.tail_length > 0:
-                    snake_head.create_eat_spot()
-                else:
-                    snake_head.spawn_tail = True
+                    if snake_head.tail_length > 0:
+                        snake_head.create_eat_spot()
+                    else:
+                        snake_head.spawn_tail = True
 
-        # Snake head and food collision
-        # Player 1
-        for food in food_group:
-            if pygame.sprite.collide_rect(p2_snake_head, food):
-                food.kill()
-                p2_score.add_score(1)
-                food = spawn_food()
-                food_group.add(food)
+            # Snake head and food collision
+            # Player 1
+            for food in food_group:
+                if pygame.sprite.collide_rect(p2_snake_head, food):
+                    food.kill()
+                    p2_score.add_score(1)
+                    food = spawn_food()
+                    food_group.add(food)
 
-                if p2_snake_head.tail_length > 0:
-                    p2_snake_head.create_eat_spot()
-                else:
-                    p2_snake_head.spawn_tail = True
+                    if p2_snake_head.tail_length > 0:
+                        p2_snake_head.create_eat_spot()
+                    else:
+                        p2_snake_head.spawn_tail = True
 
-        # Drawing
-        food_group.update()
-        food_group.draw(screen)
+            # Drawing
+            food_group.update()
+            food_group.draw(screen)
 
-        # Player 1
-        snake_tail_group.update()
-        snake_tail_group.draw(screen)
+            # Player 1
+            snake_tail_group.update()
+            snake_tail_group.draw(screen)
 
-        snake_head_group.update()
-        snake_head_group.draw(screen)
+            snake_head_group.update()
+            snake_head_group.draw(screen)
 
-        score.draw_score(screen, (15, 15), snake_head.snake_color)
+            score.draw_score(screen, (15, 15), snake_head.snake_color)
 
-        # Player 2
-        p2_snake_tail_group.update()
-        p2_snake_tail_group.draw(screen)
+            # Player 2
+            p2_snake_tail_group.update()
+            p2_snake_tail_group.draw(screen)
 
-        p2_snake_head_group.update()
-        p2_snake_head_group.draw(screen)
+            p2_snake_head_group.update()
+            p2_snake_head_group.draw(screen)
 
-        brick_group.draw(screen)
+            brick_group.draw(screen)
 
-        p2_score.draw_score(screen, (770, 15), p2_snake_head.snake_color)
+            p2_score.draw_score(screen, (770, 15), p2_snake_head.snake_color)
 
-        pygame.display.flip()
+            pygame.display.flip()
 
     elif game_state == "over":
         for event in pygame.event.get():
@@ -1087,7 +1408,6 @@ while run:
 
                         # Objects and sprite groups deletes, empties
                         food_group.empty()
-                        food_group.add(spawn_food())
 
                         # Player 1
                         del snake_head
@@ -1124,12 +1444,16 @@ while run:
                 elif event.key == pygame.K_UP:
                     if menu.option > 0:
                         menu.option -= 1
-                        print(menu.option)
+
+                    elif menu.option == 0:
+                        menu.option = 1
 
                 elif event.key == pygame.K_DOWN:
                     if menu.option < 1:
                         menu.option += 1
-                        print(menu.option)
+
+                    elif menu.option == 1:
+                        menu.option = 0
 
         if game_state == "over":
             # Add score to the database
