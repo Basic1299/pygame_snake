@@ -13,8 +13,22 @@ class Food(pygame.sprite.Sprite):
         self.image.fill(self.color)
         self.rect = self.image.get_rect(center=self.coors)
 
+        self.current_time = pygame.time.get_ticks()
+        self.initial_time = pygame.time.get_ticks()
+        self.timer = random.choice([5_000, 7_500, 10_000, 12_500, 15_000])
+
     def update(self):
-        pass
+        self.update_time()
+        self.respawn()
+
+    def update_time(self):
+        self.current_time = pygame.time.get_ticks()
+
+    def respawn(self):
+        if self.current_time - self.initial_time > self.timer:
+            self.coors = self.set_init_coors()
+            self.rect = self.image.get_rect(center=self.coors)
+            self.initial_time = pygame.time.get_ticks()
 
     def set_random_color(self):
         chance = random.randint(0, 2)
