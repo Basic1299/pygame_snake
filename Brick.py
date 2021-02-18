@@ -6,7 +6,7 @@ class Brick(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__()
         self.size = (30, 30)
-        self.color = (0, 0, 0)
+        self.color = (150, 150, 150)
 
         self.image = pygame.Surface(self.size)
         self.image.fill(self.color)

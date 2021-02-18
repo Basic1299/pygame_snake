@@ -9,6 +9,9 @@ class Score:
     def add_score(self, number):
         self.score += number
 
+    def subtract_score(self, number):
+        self.score -= number
+
     def draw_score(self, screen, position, color):
         score_image = self.score_font.render(f'{self.score}', True, self.get_color(color))
         score_rect = score_image.get_rect(center=position)

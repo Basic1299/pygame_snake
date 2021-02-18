@@ -88,6 +88,8 @@ def p2_is_game_over(state, p1_head, p1_tail_group, p1_first_tail_group,
             or head_tail_collision(p1_head, p1_tail_group, p1_first_tail_group)
             or snake_head_bricks_collision(p1_head)
             or snake_snake_collision(p1_head, p2_head_group, p2_tail_group)):
+        pygame.time.wait(3000)
+        score.subtract_score(10)
         return "over"
 
     # Player 2
@@ -95,6 +97,8 @@ def p2_is_game_over(state, p1_head, p1_tail_group, p1_first_tail_group,
             or head_tail_collision(p2_head, p2_tail_group, p2_first_tail_group_)
             or snake_head_bricks_collision(p2_head)
             or snake_snake_collision(p2_head, p1_head_group, p1_tail_group)):
+        pygame.time.wait(3000)
+        p2_score.subtract_score(10)
         return "over"
 
     return state
@@ -106,6 +110,7 @@ def is_game_over(state, head, tail_group, first_tail_group_):
     if (out_of_screen(head)
             or head_tail_collision(head, tail_group, first_tail_group_)
             or snake_head_bricks_collision(head)):
+        pygame.time.wait(3000)
         return "over"
 
     return state
@@ -198,7 +203,7 @@ option_font = pygame.font.SysFont("Arial", 32)
 current_time = 0
 pressed_time = 0
 brick_intensity = 0
-bg_color = (50, 50, 50)
+bg_color = (0, 0, 0)
 game_state = "main_menu"
 game_over_init = True
 
