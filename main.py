@@ -84,22 +84,22 @@ def out_of_screen(head, transparency):
     return False
 
 
-def head_tail_collision(head, tail_group, p_first_tail_group):
+def head_tail_collision(head, tail_group):
     """Return True if snake head hits its tail"""
+    tail_group = tail_group.sprites()[1:]
     if pygame.sprite.spritecollideany(head, tail_group):
-        if not pygame.sprite.spritecollideany(head, p_first_tail_group):
-            return True
+        return True
 
     return False
 
 
-def p2_is_game_over(state, p1_head, p1_tail_group, p1_first_tail_group,
-                    p2_head, p2_tail_group, p2_first_tail_group_,
+def p2_is_game_over(state, p1_head, p1_tail_group,
+                    p2_head, p2_tail_group,
                     p1_head_group, p2_head_group, transparency):
     """Checks every state what causes game over"""
     # Player 1
     if (out_of_screen(p1_head, transparency)
-            or head_tail_collision(p1_head, p1_tail_group, p1_first_tail_group)
+            or head_tail_collision(p1_head, p1_tail_group)
             or snake_head_bricks_collision(p1_head)
             or snake_snake_collision(p1_head, p2_head_group, p2_tail_group)):
         pygame.time.wait(3000)
@@ -108,7 +108,7 @@ def p2_is_game_over(state, p1_head, p1_tail_group, p1_first_tail_group,
 
     # Player 2
     if (out_of_screen(p2_head, transparency)
-            or head_tail_collision(p2_head, p2_tail_group, p2_first_tail_group_)
+            or head_tail_collision(p2_head, p2_tail_group)
             or snake_head_bricks_collision(p2_head)
             or snake_snake_collision(p2_head, p1_head_group, p1_tail_group)):
         pygame.time.wait(3000)
@@ -118,11 +118,11 @@ def p2_is_game_over(state, p1_head, p1_tail_group, p1_first_tail_group,
     return state
 
 
-def is_game_over(state, head, tail_group, first_tail_group_, transparency):
+def is_game_over(state, head, tail_group, transparency):
     """Checks every state what causes game over"""
     # Player 1
     if (out_of_screen(head, transparency)
-            or head_tail_collision(head, tail_group, first_tail_group_)
+            or head_tail_collision(head, tail_group)
             or snake_head_bricks_collision(head)):
         pygame.time.wait(3000)
         return "over"
@@ -253,6 +253,9 @@ food_group = pygame.sprite.Group()
 brick_group = pygame.sprite.Group()
 
 # GAME STATES [main_menu, player1_menu, player1_game, player2_menu, player2_game, over]
+# PERFORAMNCE TEST
+#SPAWNTAIL = pygame.USEREVENT + 1
+#pygame.time.set_timer(SPAWNTAIL, 100)
 
 # Game Loop
 run = True
@@ -949,8 +952,13 @@ while run:
     # PLAYER 1 GAME
     elif game_state == "player1_game":
         for event in pygame.event.get():
+            # PERFORMACE TEST
+            # if event.type == SPAWNTAIL:
+            # snake_head.create_eat_spot()
+
             if event.type == pygame.QUIT:
                 run = False
+
             if event.type == pygame.KEYDOWN:
                 # Reset and back to the menu
                 if event.key == pygame.K_ESCAPE:
@@ -1043,7 +1051,7 @@ while run:
                 snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
 
             game_state = is_game_over(game_state, snake_head,
-                                      snake_tail_group, first_tail_group,
+                                      snake_tail_group,
                                       edge_transparency)
 
             current_time = pygame.time.get_ticks()
@@ -1278,8 +1286,8 @@ while run:
                 p2_snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
                 p2_snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
 
-            game_state = p2_is_game_over(game_state, snake_head, snake_tail_group, first_tail_group,
-                                         p2_snake_head, p2_snake_tail_group, p2_first_tail_group,
+            game_state = p2_is_game_over(game_state, snake_head, snake_tail_group,
+                                         p2_snake_head, p2_snake_tail_group,
                                          snake_head_group, p2_snake_head_group, edge_transparency)
 
             current_time = pygame.time.get_ticks()
@@ -1398,7 +1406,9 @@ while run:
                         pressed_time = 0
 
                         snake_head.dir = ""
+                        snake_head.init_dir = ""
                         snake_head.tail_length = 0
+                        snake_head.distance_between = 0
 
                         snake_head.rect.centerx = random.randint(30, SCREEN_WIDTH - 50)
                         snake_head.rect.centery = random.randint(30, SCREEN_HEIGHT - 50)
